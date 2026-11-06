@@ -46,9 +46,9 @@ def montar(offer, item):
         if not lat or not lng: continue
         pi = None
         if tp:
-            m = re.search(r"(\d+)\s*X\s*([\d /]+)$", (tp.get("description") or "").strip(), re.I)
-            if m:
-                k = m.group(1) + " X " + m.group(2).strip()
+            fases = re.findall(r"(\d+)\s*X\s*(\d+(?:\s+\d+/\d+|/\d+)?)", tp.get("description") or "", re.I)
+            if fases:
+                k = " + ".join(n + " X " + f.strip() for n, f in fases)
                 if k not in planos: planos.append(k)
                 pi = planos.index(k)
         q = re.sub(r"^QUADRA\s+", "", (u.get("plantDescription") or "").strip(), flags=re.I)

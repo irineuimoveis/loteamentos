@@ -136,12 +136,16 @@ let LOTEAMENTOS = [], ATUALIZADO = "";
 const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
 const FRAC = {'1/4':'¼','1/2':'½','3/4':'¾'};
 function parsePlano(k){
-  const m = k.match(/(\d+)\s*X\s*(.+)/i); const n = +m[1]; const t = m[2].trim();
-  let val = 0, txt = '';
-  t.split(/\s+/).forEach(p => { if(p.includes('/')){const [a,b]=p.split('/');val+=a/b;txt+=FRAC[p]||(' '+p);} else {val+=+p;txt+=p;} });
-  if(txt.startsWith(' ')) txt = txt.trim();
-  return {n, val, txt};
+  const fases = k.split('+').map(s => {
+    const m = s.match(/(\d+)\s*X\s*([\d \/]+)/i); if(!m) return null;
+    let val = 0, txt = '';
+    m[2].trim().split(/\s+/).forEach(p => { if(p.includes('/')){const [a,b]=p.split('/');val+=a/b;txt+=FRAC[p]||(' '+p);} else {val+=+p;txt+=p;} });
+    return {n:+m[1], val, txt:txt.trim()};
+  }).filter(Boolean);
+  return fases.length ? {fases} : null;
 }
+const rs = v => 'R$' + v.toLocaleString('pt-BR',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
+const salMsg = f => f.val < 1 ? `${Math.round(f.val*100)}% do Salário` : `${f.txt} Salário`;
 function entradaDe(lot, plano){
   const E = CONFIG.entrada||{}, e = E[lot.id] || E.todos; if(!e) return null;
   const c = Object.assign({}, e.padrao||{}, (e.porPlano||{})[plano]||{});
@@ -247,9 +251,24 @@ function open(LT, l){
   const plano = pi != null ? LT.planos[pi] : null, p = plano ? parsePlano(plano) : null;
   const ent = entradaDe(LT, plano);
   const sm = CONFIG.salarioMinimo;
-  const msg = `Me interessei pelo Lote ${num} quadra ${quadra} do ${LT.nome}`;
+  const gm = `https://www.google.com/maps?q=${lat},${lng}`;
+  const linhas = [`Me interessei pelo Lote ${num} quadra ${quadra} do ${LT.nome}`];
+  if(ent || p) linhas.push('', '🤩Que está com essa Condição Incrível:👇🏻');
+  if(ent){
+    linhas.push('', '👇🏻ENTRADA À VISTA:', `- ${rs(ent.aVista)}`);
+    if(ent.parcelas) linhas.push('', '👇🏻ENTRADA FACILITADA:', `- Sinal de ${rs(ent.sinal||0)} +${ent.parcelas}x de ${rs(ent.valorParcela)}`);
+  }
+  if(p){
+    linhas.push('', '👇🏻PARCELAS:');
+    p.fases.forEach((f,i) => {
+      if(i) linhas.push('');
+      linhas.push(`- ${i?'+':''}${f.n}x de ${salMsg(f)}`, `(${rs(f.val*sm)} hoje)`);
+      if(ent || i) linhas.push(i ? `> Inicia após quitar as ${p.fases[i-1].n}x` : '> Inicia após quitar a entrada');
+    });
+  }
+  linhas.push('', '👇🏼Localização exata do terreno:', `📍${gm}`);
+  const msg = linhas.join('\n');
   const wa = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
-  const gm = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   let h = `<div class="grip"></div>
   <div class="head"><div><h2 id="loteTitulo">Lote ${num}</h2><div class="q">Quadra ${quadra}</div></div>
   <button class="close" aria-label="Fechar" onclick="closeCard()">✕</button></div>
@@ -262,9 +281,14 @@ function open(LT, l){
         ${ent.parcelas ? `<div class="row"><span>Parcelada</span><b>${brl(ent.sinal||0)} de sinal<br>+ ${ent.parcelas}x de ${brl(ent.valorParcela)}</b></div>` : ''}
       </div>`;
     }
-    if(p) h += `<div class="block"><h3>PARCELAMENTO</h3>
-      <div class="big">${p.n}x de ${p.txt} salário mínimo</div>
-      <div class="today">(${brl(p.val*sm)} hoje)</div></div>`;
+    if(p){
+      h += `<div class="block"><h3>PARCELAMENTO</h3>`;
+      p.fases.forEach((f,i) => {
+        h += `<div class="big"${i?' style="margin-top:10px"':''}>${i?'+ ':''}${f.n}x de ${f.txt} salário mínimo</div>
+        <div class="today">(${brl(f.val*sm)} hoje)${p.fases.length>1 ? '<br>' + (i ? 'Inicia após quitar as ' + p.fases[i-1].n + 'x' : 'Inicia após quitar a entrada') : ''}</div>`;
+      });
+      h += `</div>`;
+    }
     h += `
       <div class="actions">
         <a class="btn wa" href="${wa}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
