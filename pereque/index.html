@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Mapa dos lotes | Irineu Imóveis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ffffff; --ink:#132c34; --muted:#5b6f76; --line:#dbe4e6;
+  --sea:#0d5d6e; --sea-soft:#e3f0f2; --wa:#168a48; --wa-ink:#ffffff;
+  --free:#9aa3a7; --taken:#d23f3f; --shadow:0 -6px 28px rgba(8,30,36,.22);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#15242a; --ink:#e6eff1; --muted:#9db0b6; --line:#2a3d44;
+    --sea:#6cc3d4; --sea-soft:#1d3840; --wa:#1fa458; --shadow:0 -6px 28px rgba(0,0,0,.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#15242a; --ink:#e6eff1; --muted:#9db0b6; --line:#2a3d44;
+  --sea:#6cc3d4; --sea-soft:#1d3840; --wa:#1fa458; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+.top,.legend{touch-action:none}
+.card{touch-action:pan-y}
+body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#0c1a1f}
+#map{position:fixed!important;inset:0;width:100%;height:100%;background:#0c1a1f}
+
+.top{position:fixed;left:0;right:0;top:0;z-index:1000;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 0;pointer-events:none}
+.bar{pointer-events:auto;background:var(--paper);border-radius:12px;padding:7px 9px 7px 12px;box-shadow:0 4px 18px rgba(0,0,0,.25);max-width:560px;margin:0 auto}
+.bar h1{margin:0;font-size:.98rem;font-weight:800;letter-spacing:-.01em;line-height:1.2;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .sub{display:none}
+.filters{display:flex;gap:6px;margin-top:6px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;touch-action:pan-x}
+.filters::-webkit-scrollbar{display:none}
+#fLot{display:none}
+.filters select,.chip{font:inherit;font-size:.76rem;color:var(--ink);background:var(--sea-soft);border:1px solid var(--line);border-radius:999px;padding:3px 9px;min-height:28px;flex:none;white-space:nowrap}
+.chip input{width:13px;height:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--sea);margin:0}
+.count{font-size:.72rem;color:var(--muted);margin-left:auto;flex:none;white-space:nowrap;padding-left:4px}
+
+.legend{position:fixed;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:900;background:var(--paper);border-radius:10px;padding:7px 10px;font-size:.78rem;display:flex;gap:12px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1.5px solid #fff}
+
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:1100;transform:translateY(105%);transition:transform .28s ease;pointer-events:none}
+.sheet.open{transform:none;pointer-events:auto}
+.card{background:var(--paper);max-width:560px;margin:0 auto;border-radius:20px 20px 0 0;box-shadow:var(--shadow);padding:10px 18px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:78vh;overflow:auto}
+.grip{width:40px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 10px}
+.head{display:flex;align-items:flex-start;gap:10px}
+.head h2{margin:0;font-size:1.7rem;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.head .q{color:var(--muted);font-size:.95rem;margin-top:3px}
+.close{margin-left:auto;background:var(--sea-soft);border:0;color:var(--ink);width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;flex:none}
+.pill{display:inline-block;font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:999px;margin-top:8px}
+.pill{color:#1b1b1b}
+.pill i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.area{font-size:1rem;margin-top:10px}
+.area b{font-weight:800}
+.block{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.block h3{margin:0 0 6px;font-size:.8rem;font-weight:800;color:var(--sea);letter-spacing:.04em}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:.98rem;padding:3px 0}
+.row span:first-child{color:var(--muted)}
+.row b{font-weight:800;text-align:right}
+.big{font-size:1.08rem;font-weight:800}
+.today{color:var(--muted);font-size:.92rem;margin-top:2px}
+.actions{display:grid;gap:8px;margin-top:16px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font:inherit;font-weight:800;font-size:1rem;border-radius:12px;padding:14px;border:0;cursor:pointer}
+.btn.wa{background:var(--wa);color:var(--wa-ink)}
+.btn.gm{background:var(--sea-soft);color:var(--ink);font-weight:600;font-size:.92rem;padding:11px}
+.btn:focus-visible,.close:focus-visible,select:focus-visible{outline:3px solid var(--sea);outline-offset:2px}
+.note{font-size:.75rem;color:var(--muted);margin-top:12px}
+.placa{position:absolute;transform:translate(-50%,-50%);cursor:pointer;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45));user-select:none}
+.placa svg{display:block}
+.placa:hover,.placa:focus-visible{filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)) brightness(1.06);outline:none}
+@media (prefers-reduced-motion: reduce){.sheet{transition:none}}
+.legend{left:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);flex-wrap:wrap;max-width:min(215px,calc(100vw - 80px));gap:2px 8px;padding:5px 8px;font-size:.66rem;border-radius:8px;opacity:.93;cursor:default;line-height:1.35}
+.legend i{width:8px;height:8px;margin-right:3px;border-width:1px;vertical-align:0}
+/* ===== Painel secreto ===== */
+.ovl{position:fixed;inset:0;z-index:3000;display:none}
+.ovl.open{display:flex}
+#senhaBox{background:rgba(5,15,20,.55);align-items:center;justify-content:center;padding:20px}
+.dlg{background:var(--paper);color:var(--ink);border-radius:18px;padding:20px;width:min(340px,100%);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.dlg h3{margin:0 0 4px;font-size:1.15rem}
+.dlg p{margin:0 0 12px;color:var(--muted);font-size:.88rem}
+.dlg .erro{color:#c0392b;font-size:.85rem;min-height:1.2em;margin-top:6px}
+.inp{font:inherit;font-size:16px;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--sea-soft);color:var(--ink)}
+.inp:focus{outline:2px solid var(--sea);outline-offset:1px}
+.btn.pri{background:var(--sea);color:#fff}
+.btn.sec{background:var(--sea-soft);color:var(--ink);font-weight:600}
+.dlg .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+#admin{background:var(--paper);color:var(--ink);flex-direction:column}
+.adm-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;border-bottom:1px solid var(--line)}
+.adm-head h2{margin:0;font-size:1.2rem;font-weight:800}
+.adm-body{flex:1;overflow:auto;padding:6px 16px 28px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.adm-foot{border-top:1px solid var(--line);padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;gap:10px;align-items:center;background:var(--paper)}
+.adm-foot .btn{flex:none;padding:13px 18px}
+.adm-msg{font-size:.85rem;color:var(--muted);flex:1;line-height:1.3}
+.adm-msg.ok{color:#168a48}.adm-msg.err{color:#c0392b}
+.sec{margin-top:18px}
+.sec>h3{font-size:.8rem;letter-spacing:.05em;color:var(--sea);margin:0 0 4px;font-weight:800}
+.sec>.dica{font-size:.82rem;color:var(--muted);margin:0 0 10px;line-height:1.35}
+.box{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.box .tit{font-weight:800;font-size:.98rem;line-height:1.25}
+.box .sub{font-size:.8rem;color:var(--muted);margin-top:3px;line-height:1.35}
+.flds{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin-top:10px}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:.74rem;color:var(--muted);font-weight:600}
+.fl .inp{padding:9px 10px}
+.prev{font-size:.84rem;margin-top:10px;background:var(--sea-soft);border-radius:10px;padding:8px 10px;line-height:1.45}
+.prev b{font-weight:800}
+details.box summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:center}
+details.box summary::-webkit-details-marker{display:none}
+details.box summary::after{content:"▾";color:var(--muted)}
+details.box[open] summary::after{content:"▴"}
+.filtro{display:flex;gap:8px;margin:8px 0}
+.filtro select{flex:1}
+.mini{font-size:.78rem;color:var(--muted)}
+.lnk{color:var(--sea);font-weight:700;background:none;border:0;padding:0;font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline}
+/* ===== título com compartilhar ===== */
+.ttl{display:flex;align-items:center;gap:8px}
+.share{flex:none;width:28px;height:28px;border-radius:50%;border:0;background:var(--sea-soft);color:var(--sea);display:grid;place-items:center;cursor:pointer;padding:0}
+.share svg{width:15px;height:15px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);transform:translateX(-50%);background:#132c34;color:#fff;padding:10px 16px;border-radius:999px;font-size:.88rem;z-index:4000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+/* ===== botão consultar corretor ===== */
+.btn.consulta{display:inline-flex;gap:6px;align-items:center;background:var(--wa);color:#fff;font-size:.85rem;padding:8px 12px;border-radius:999px;text-decoration:none;font-weight:800}
+.btn.consulta svg{width:15px;height:15px;flex:none}
+.row b .btn.consulta{margin-top:2px}
+/* ===== modo marcar lotes ===== */
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:2500;display:none;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px)}
+.selbar.on{display:block}
+.selbar .in{background:var(--paper);color:var(--ink);max-width:560px;margin:0 auto;border-radius:16px;box-shadow:0 -4px 24px rgba(0,0,0,.35);padding:12px}
+.selbar .t1{font-weight:800}
+.selbar .t2{font-size:.82rem;color:var(--muted);margin-top:2px}
+.selbar .bb{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:10px}
+.selbar .btn{padding:12px}
+/* ===== painel: condições e pendências ===== */
+.cond{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:9px 10px;margin:8px 0}
+.cond .cx{flex:1;min-width:0}
+.cond .cx b{display:block;font-weight:800;font-size:.92rem}
+.cond .cx span{font-size:.76rem;color:var(--muted)}
+.ico{flex:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--sea-soft);color:var(--ink);font-size:1rem;cursor:pointer;display:grid;place-items:center}
+.ico.marcar{width:auto;padding:0 10px;font-size:.78rem;font-weight:800;color:var(--sea)}
+.form{border:1px dashed var(--sea);border-radius:12px;padding:10px;margin:8px 0}
+.form .bb{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.form .bb .btn{padding:10px 14px;font-size:.88rem}
+.btn.del{background:#fbe0e0;color:#a12b2b;font-weight:700}
+.entr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.entr:last-child{border-bottom:0}
+.entr .ex{flex:1 1 100%;font-size:.88rem}
+.entr .ex small{display:block;color:var(--muted);font-size:.74rem}
+.entr select{flex:1 1 100%;font-size:14px;padding:9px}
+.badge{display:inline-block;font-size:.72rem;font-weight:800;border-radius:999px;padding:2px 8px;background:#fde3cb;color:#8a4a0c;margin-left:6px;vertical-align:1px}
+.badge.ok{background:#e1f4e8;color:#126a39}
+.pend{font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--sea-soft);border-radius:10px;padding:8px 10px;margin-top:6px;max-height:180px;overflow:auto}
+.sub2{font-size:.78rem;font-weight:800;color:var(--muted);margin:12px 0 2px;letter-spacing:.03em}
+.lnkbtn{background:none;border:0;color:var(--sea);font:inherit;font-weight:800;font-size:.86rem;padding:6px 0;cursor:pointer}
+.sitrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.sitrow:last-child{border-bottom:0}
+.sitrow .ex{flex:1;font-size:.84rem}
+.sitrow .ex small{display:block;color:var(--muted);font-size:.74rem}
+.sitrow select{max-width:50%;font-size:14px;padding:8px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="top" id="topo" style="display:none"><div class="bar">
+  <div class="ttl"><h1 id="nome"></h1><span class="count" id="count"></span>
+    <button class="share" id="btnShare" aria-label="Compartilhar o link deste loteamento" title="Compartilhar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+    </button></div>
+  <div class="sub" id="cidade"></div>
+  <div class="filters">
+    <select id="fLot" aria-label="Escolher loteamento"></select>
+    <select id="fQuadra" aria-label="Filtrar por quadra"></select>
+    <label class="chip"><input type="checkbox" id="fDisp"> Só disponíveis</label>
+    <label class="chip"><input type="checkbox" id="fPlanta" checked> Planta</label>
+  </div>
+</div></div>
+
+<div class="legend" id="legenda" role="note" aria-label="Legenda"></div>
+
+<div class="ovl" id="senhaBox" role="dialog" aria-modal="true" aria-labelledby="senhaTit">
+  <div class="dlg">
+    <h3 id="senhaTit">Área do corretor</h3>
+    <p>Digite a senha para abrir as configurações.</p>
+    <input class="inp" id="senhaInp" type="password" inputmode="numeric" autocomplete="off" aria-label="Senha">
+    <div class="erro" id="senhaErro" aria-live="polite"></div>
+    <div class="btns"><button class="btn sec" id="senhaCancel">Cancelar</button><button class="btn pri" id="senhaOk">Entrar</button></div>
+  </div>
+</div>
+
+<div class="ovl" id="admin" role="dialog" aria-modal="true" aria-labelledby="admTit">
+  <div class="adm-head"><h2 id="admTit">Área do corretor</h2><button class="close" id="admFechar" aria-label="Fechar">✕</button></div>
+  <div class="adm-body" id="admCorpo"></div>
+  <div class="adm-foot"><div class="adm-msg" id="admMsg" aria-live="polite"></div><button class="btn pri" id="admSalvar">Salvar para todos</button></div>
+</div>
+
+<div class="selbar" id="selbar" role="region" aria-label="Marcar lotes"><div class="in">
+  <div class="t1" id="selT1"></div><div class="t2" id="selT2">Toque nos lotes para marcar ou desmarcar.</div>
+  <div class="bb"><button class="btn sec" id="selCancel">Cancelar</button><button class="btn pri" id="selOk">Confirmar e salvar</button></div>
+</div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="loteTitulo"><div class="card" id="card"></div></div>
+
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO BÁSICA — o resto se edita pela Área do corretor
+   (5 toques na legenda). O que for salvo lá vale por cima disto.
+   ===================================================================== */
+const CONFIG = {
+  salarioMinimo: 1621,
+  whatsapp: "5547992422059",
+  googleMapsKey: "AIzaSyBLNed6B7eZyrQxnIC9WeXGKDnTbbTIyZQ",
+  repo: "irineuimoveis/loteamentos"
+};
+/* ===================================================================== */
+
+const REPO_NOME = CONFIG.repo.split('/')[1];
+const RAW = `https://raw.githubusercontent.com/${CONFIG.repo}/main/`;
+const BASE = location.hostname.endsWith('github.io') ? `${location.origin}/${REPO_NOME}/` : location.origin + location.pathname.replace(/[^/]*$/, '');
+const ZOOM_LOTES = 14;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const numOk = v => typeof v === 'number' && isFinite(v);
+const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
+const rs = v => 'R$' + v.toLocaleString('pt-BR',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
+const FRAC = {'1/4':'¼','1/2':'½','3/4':'¾'};
+function parsePlano(k){
+  const fases = String(k||'').split('+').map(s => {
+    const m = s.match(/(\d+)\s*X\s*([\d \/]+)/i); if(!m) return null;
+    let val = 0, txt = '';
+    m[2].trim().split(/\s+/).forEach(p => { if(p.includes('/')){const [a,b]=p.split('/');val+=a/b;txt+=FRAC[p]||(' '+p);} else {val+=+p;txt+=p;} });
+    return {n:+m[1], val, txt:txt.trim()};
+  }).filter(Boolean);
+  return fases.length ? {fases} : null;
+}
+const salMsg = f => f.val < 1 ? `${Math.round(f.val*100)}% do Salário` : `${f.txt} Salário`;
+const ICO_CHAT = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm4 7.5a1.5 1.5 0 1 0 0 .01zm4 0a1.5 1.5 0 1 0 0 .01zm4 0a1.5 1.5 0 1 0 0 .01z"/></svg>';
+
+/* ---------- Situação de cada lote (cores) ---------- */
+const SIT = {
+  disponivel:  {nome:'Disponível',           cor:'#9aa3a7', fundo:'#e7ebec'},
+  reservado:   {nome:'Reservado',            cor:'#f2c230', fundo:'#fdf1c7'},
+  definitivo:  {nome:'Reservado definitivo', cor:'#2f80ed', fundo:'#dceafc'},
+  indisponivel:{nome:'Indisponível',         cor:'#f08a24', fundo:'#fde3cb'},
+  vendido:     {nome:'Vendido',              cor:'#d23f3f', fundo:'#fbe0e0'}
+};
+// Tabela oficial do forinvest (conferida no card de cada situação)
+const SIT_PADRAO = {0:'disponivel', 1:'vendido', 2:'reservado', 3:'indisponivel', 4:'definitivo'};
+
+/* ---------- Regras salvas pela Área do corretor (config.json) ----------
+   lots[id] = { conds:[{id,sinal,parcelas,valor}], porEntrada:{ "15000": condId }, porLote:{ "A|12": condId | "-" } } */
+let REGRAS = {situacoes:{}, lots:{}};
+let LOTEAMENTOS = [], ATUALIZADO = '';
+const situacao = st => SIT_PADRAO[st] || 'indisponivel';
+const chaveLote = l => l[0] + '|' + l[1];
+
+function normalizaRegras(r){
+  r = r || {};
+  const lots = {};
+  Object.entries(r.lots || {}).forEach(([id, v]) => {
+    lots[id] = {
+      conds: (v.conds || []).filter(c => c && c.id && numOk(c.parcelas) && c.parcelas > 0)
+        .map(c => ({id:String(c.id), sinal: numOk(c.sinal) ? c.sinal : 0, parcelas: Math.round(c.parcelas), valor: numOk(c.valor) && c.valor > 0 ? c.valor : null})),
+      porEntrada: Object.assign({}, v.porEntrada || {}),
+      porLote: Object.assign({}, v.porLote || {})
+    };
+  });
+  const sit = {};
+  Object.entries(r.situacoes || {}).forEach(([k, v]) => { if(SIT[v]) sit[k] = v; });
+  return {situacoes: sit, lots};
+}
+function condIdDe(R, L, l){
+  const r = R.lots[L.id]; if(!r) return null;
+  const cl = r.porLote[chaveLote(l)];
+  if(cl === '-') return null;
+  const id = cl || r.porEntrada[String(l[7] || 0)];
+  return id && r.conds.some(c => c.id === id) ? id : null;
+}
+function condDe(R, L, l){ const id = condIdDe(R, L, l); return id ? R.lots[L.id].conds.find(c => c.id === id) : null; }
+function valorParcela(c, aVista){
+  if(!c) return null;
+  if(numOk(c.valor)) return c.valor;
+  return aVista ? Math.round((aVista - (c.sinal || 0)) / c.parcelas) : null;
+}
+function entradaDe(L, l){
+  const aVista = l[7] || null, c = condDe(REGRAS, L, l);
+  const vp = valorParcela(c, aVista);
+  return {aVista, cond: c && vp > 0 ? c : null, sinal: c ? c.sinal : 0, parcelas: c ? c.parcelas : 0, valorParcela: vp};
+}
+const textoCond = (c, aVista) => {
+  const vp = valorParcela(c, aVista);
+  return `${rs(c.sinal || 0)} + ${c.parcelas}x de ${vp ? rs(vp) : (numOk(c.valor) ? rs(c.valor) : 'parcela automática')}`;
+};
+const textoCondCurto = c => `Sinal ${rs(c.sinal || 0)} + ${c.parcelas}x ${numOk(c.valor) ? 'de ' + rs(c.valor) : '(parcela automática)'}`;
+
+/* ---------- Carregar dados e configurações ---------- */
+const dadosPromise = fetch(RAW + 'data.json?t=' + Date.now(), {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+const configPromise = fetch(RAW + 'config.json?t=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null);
+function aplicarConfig(c){
+  if(!c) return;
+  if(numOk(+c.salarioMinimo) && +c.salarioMinimo > 0) CONFIG.salarioMinimo = +c.salarioMinimo;
+  const w = String(c.whatsapp || '').replace(/\D/g, '');
+  if(w.length >= 12) CONFIG.whatsapp = w;
+  REGRAS = normalizaRegras(c);
+}
+
+function slugDaUrl(){
+  const q = new URLSearchParams(location.search).get('l');
+  if(q) return q.toLowerCase();
+  const partes = location.pathname.split('/').filter(Boolean);
+  const i = partes.indexOf(REPO_NOME);
+  const s = i >= 0 ? partes[i + 1] : partes[partes.length - 1];
+  return s && s !== 'index.html' ? decodeURIComponent(s).toLowerCase() : '';
+}
+function linkDe(L){ return BASE + (L ? encodeURIComponent(L.id) : ''); }
+function atualizarUrl(){
+  if(!location.hostname.endsWith('github.io')) return;
+  const alvo = linkDe(LOT);
+  if(location.href.replace(/\/$/, '') !== alvo.replace(/\/$/, '')) history.replaceState(null, '', alvo);
+}
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
+
+/* =====================================================================
+   MAPA
+   ===================================================================== */
+let map, LOT = null, selected = null, camada = null, visiveis = [], placas = null, MODO = null;
+const fL = $('fLot'), fQ = $('fQuadra');
+
+function limitesDe(L){
+  const b = new google.maps.LatLngBounds();
+  if(L.planta){ const [[s,w],[n,e]] = L.planta.limites; b.extend({lat:s,lng:w}); b.extend({lat:n,lng:e}); }
+  L.lotes.forEach(l => b.extend({lat:l[4], lng:l[5]}));
+  return b;
+}
+const zoomFoco = L => Math.min(ZOOM_LOTES, L.fitZoom || ZOOM_LOTES);
+const emFoco = (L, z, vista) => z >= zoomFoco(L) && vista && vista.intersects(L.bounds);
+
+async function initMap(){
+  try {
+    const d = await dadosPromise;
+    LOTEAMENTOS = (d.loteamentos || d).filter(L => L && L.lotes && L.lotes.length);
+    ATUALIZADO = d.atualizado || '';
+    aplicarConfig(await configPromise);
+  } catch(e){
+    $('topo').style.display = ''; $('nome').textContent = 'Não foi possível carregar os lotes';
+    $('cidade').textContent = 'Verifique a internet e recarregue a página.'; return;
+  }
+  map = new google.maps.Map($('map'), {
+    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:11, minZoom:8, mapTypeId:'hybrid', tilt:0,
+    streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy', mapTypeControl:false
+  });
+  LOTEAMENTOS.forEach(L => {
+    L.bounds = limitesDe(L);
+    if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
+      {lat:L.planta.limites[0][0], lng:L.planta.limites[0][1]}, {lat:L.planta.limites[1][0], lng:L.planta.limites[1][1]}) : L.bounds, {opacity:.92, clickable:false});
+  });
+  const area = new google.maps.LatLngBounds({lat:-28.0, lng:-49.9}, {lat:-25.8, lng:-48.0}); // leste de SC
+  LOTEAMENTOS.forEach(L => area.union(L.bounds));
+  const ne = area.getNorthEast(), sw = area.getSouthWest();
+  map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.3, south:sw.lat()-.3, east:ne.lng()+.3, west:sw.lng()-.3}, strictBounds:false}});
+  criarPlacas(); criarCamada();
+  fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${esc(L.id)}">${esc(L.nome)}</option>`).join('');
+  map.addListener('click', tocarMapa);
+  map.addListener('idle', draw);
+  const ini = LOTEAMENTOS.find(L => L.id.toLowerCase() === slugDaUrl());
+  if(ini) escolher(ini.id); else verTodos();
+}
+window.initMap = initMap;
+
+function verTodos(){
+  const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds));
+  map.fitBounds(b, 60);
+}
+function escolher(id){
+  const L = LOTEAMENTOS.find(x => x.id === id);
+  closeCard();
+  if(!L){ LOT = null; verTodos(); return; }
+  map.fitBounds(L.bounds, {top:105, bottom:60, left:14, right:14});
+  google.maps.event.addListenerOnce(map, 'idle', () => { L.fitZoom = map.getZoom(); draw(); });
+}
+
+function cabecalho(){
+  $('nome').textContent = LOT ? LOT.nome : '';
+  $('cidade').textContent = LOT ? LOT.cidade : '';
+  document.title = (LOT ? LOT.nome : 'Loteamentos Irineu Imóveis') + ' | Mapa dos lotes';
+  fL.value = LOT ? LOT.id : '';
+  if(LOT){
+    const qs = [...new Set(LOT.lotes.map(l => l[0]))].sort((a,b) => a.localeCompare(b, 'pt-BR', {numeric:true}));
+    fQ.innerHTML = '<option value="">Todas as quadras</option>' + qs.map(q => `<option value="${esc(q)}">Quadra ${esc(q)}</option>`).join('');
+  }
+}
+
+/* ----- Placas douradas ----- */
+const medidor = document.createElement('canvas').getContext('2d');
+function larguraTexto(t, px){ medidor.font = `bold ${px}px Georgia, "Times New Roman", serif`; return medidor.measureText(t).width; }
+
+function svgPlaca(linha1, linha2){
+  const W = Math.max(130, Math.ceil(Math.max(linha2 ? larguraTexto(linha2,15) : 0, larguraTexto(linha1, linha2 ? 9 : 14))) + 46);
+  const H = 66, y1 = 10, y2 = 56, r = 9, c = W/2, uid = 'g' + Math.random().toString(36).slice(2,8);
+  const forma = (i) => `M${r+i},${y1+i} H${W-r-i} A${r} ${r} 0 0 0 ${W-i},${y1+r+i} V${y2-r-i} A${r} ${r} 0 0 0 ${W-r-i},${y2-i} H${r+i} A${r} ${r} 0 0 0 ${i},${y2-r-i} V${y1+r+i} A${r} ${r} 0 0 0 ${r+i},${y1+i} Z`;
+  const enfeite = (y, s) => `<g transform="translate(${c} ${y}) scale(1 ${s})" fill="url(#o${uid})" stroke="#5a3608" stroke-width=".6">
+      <path d="M0,-1 C-4,-9 -13,-9 -14,-3 C-15,2 -9,4 -7,0 C-6,-2 -8,-4 -10,-3 C-9,-6 -4,-6 -3,-1 C-2,2 -1,3 0,4 C1,3 2,2 3,-1 C4,-6 9,-6 10,-3 C8,-4 6,-2 7,0 C9,4 15,2 14,-3 C13,-9 4,-9 0,-1 Z"/>
+      <path d="M-15,-1 C-22,-6 -30,-4 -34,1 C-29,-1 -23,0 -16,2 Z M15,-1 C22,-6 30,-4 34,1 C29,-1 23,0 16,2 Z"/></g>`;
+  const texto = linha2
+    ? `<text x="${c}" y="29" font-size="9" letter-spacing="2.5">${esc(linha1.toUpperCase())}</text><text x="${c}" y="46" font-size="15">${esc(linha2)}</text>`
+    : `<text x="${c}" y="38" font-size="14">${esc(linha1)}</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <linearGradient id="b${uid}" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#9c6a1c"/><stop offset=".22" stop-color="#d8ac4c"/><stop offset=".5" stop-color="#fbeaa6"/>
+        <stop offset=".78" stop-color="#d8ac4c"/><stop offset="1" stop-color="#9c6a1c"/></linearGradient>
+      <linearGradient id="s${uid}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#5a3608" stop-opacity=".25"/></linearGradient>
+      <linearGradient id="o${uid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f3d27a"/><stop offset="1" stop-color="#8a5a14"/></linearGradient>
+    </defs>
+    <path d="${forma(0)}" fill="#6e4510"/>
+    <path d="${forma(1.5)}" fill="url(#b${uid})"/>
+    <path d="${forma(1.5)}" fill="url(#s${uid})"/>
+    <path d="${forma(5)}" fill="none" stroke="#7a4e12" stroke-width="1.1"/>
+    <path d="${forma(6.2)}" fill="none" stroke="#fff4c8" stroke-width=".8" opacity=".9"/>
+    ${enfeite(y1+1, 1)}${enfeite(y2-1, -1)}
+    <g font-family="Georgia, 'Times New Roman', serif" font-weight="bold" text-anchor="middle" fill="#4a2a04">${texto}</g>
+  </svg>`;
+}
+
+
+function criarPlacas(){
+  LOTEAMENTOS.forEach(L => {
+    const curto = L.nome.replace(/^Loteamento\s+/i,'');
+    L.placaSvg = curto !== L.nome ? svgPlaca('Loteamento', curto) : svgPlaca(L.nome);
+    L.placaW = +L.placaSvg.match(/width="(\d+)"/)[1];
+  });
+  class Placas extends google.maps.OverlayView {
+    onAdd(){ this.box = document.createElement('div'); this.getPanes().overlayMouseTarget.appendChild(this.box); }
+    onRemove(){ this.box.remove(); }
+    draw(){
+      const pr = this.getProjection(); if(!pr || !this.box) return;
+      this.box.innerHTML = '';
+      const z = map.getZoom(), vista = map.getBounds();
+      if(MODO || z >= ZOOM_LOTES) return;
+      const itens = LOTEAMENTOS.filter(L => !emFoco(L, z, vista))
+        .map(L => ({L, p: pr.fromLatLngToDivPixel(new google.maps.LatLng(L.centro[0], L.centro[1]))}));
+      const grupos = [];
+      itens.forEach(it => {
+        const g = grupos.find(g => g.itens.some(o => Math.abs(o.p.x - it.p.x) < (o.L.placaW + it.L.placaW)/2 + 8 && Math.abs(o.p.y - it.p.y) < 62));
+        g ? g.itens.push(it) : grupos.push({itens:[it]});
+      });
+      grupos.forEach(g => {
+        const x = g.itens.reduce((s,o) => s + o.p.x, 0) / g.itens.length, y = g.itens.reduce((s,o) => s + o.p.y, 0) / g.itens.length;
+        const el = document.createElement('div');
+        el.className = 'placa'; el.tabIndex = 0; el.setAttribute('role','button');
+        el.style.left = x + 'px'; el.style.top = y + 'px';
+        if(g.itens.length === 1){
+          const L = g.itens[0].L;
+          el.innerHTML = L.placaSvg; el.setAttribute('aria-label', 'Ver ' + L.nome);
+          el.onclick = () => escolher(L.id);
+        } else {
+          el.innerHTML = svgPlaca(`${g.itens.length} loteamentos aqui`); el.setAttribute('aria-label', `${g.itens.length} loteamentos aqui, aproximar`);
+          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); map.fitBounds(b, 80); };
+        }
+        el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.onclick(); } };
+        google.maps.OverlayView.preventMapHitsAndGesturesFrom(el);
+        this.box.appendChild(el);
+      });
+    }
+  }
+  placas = new Placas(); placas.setMap(map);
+}
+
+/* ----- Bolinhas: uma única camada de desenho (leve em celular fraco) ----- */
+function criarCamada(){
+  class Camada extends google.maps.OverlayView {
+    onAdd(){ this.cv = document.createElement('canvas'); Object.assign(this.cv.style, {position:'absolute', pointerEvents:'none', zIndex:'1000'});
+      this.ctx = this.cv.getContext('2d'); this.getPanes().overlayLayer.appendChild(this.cv); }
+    onRemove(){ this.cv.remove(); }
+    draw(){
+      const pr = this.getProjection(), b = map.getBounds(); if(!pr || !b || !this.cv) return;
+      const div = map.getDiv(), W = div.clientWidth, H = div.clientHeight, M = Math.round(Math.max(W,H) * .5);
+      const c0 = pr.fromLatLngToDivPixel(map.getCenter());
+      const x0 = c0.x - W/2 - M, y0 = c0.y - H/2 - M, CW = W + 2*M, CH = H + 2*M;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      Object.assign(this.cv.style, {left:x0+'px', top:y0+'px', width:CW+'px', height:CH+'px'});
+      if(this.cv.width !== Math.round(CW*dpr) || this.cv.height !== Math.round(CH*dpr)){ this.cv.width = Math.round(CW*dpr); this.cv.height = Math.round(CH*dpr); }
+      const ctx = this.ctx; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,CW,CH);
+      const z = map.getZoom(); visiveis = [];
+      const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, z);
+      const r = Math.max(2, 4 / mpp), borda = z >= 18 ? 1.5 : z >= 17 ? .8 : 0;
+      const only = $('fDisp').checked, q = LOT ? fQ.value : '';
+      const cores = {}; Object.keys(SIT).forEach(k => cores[k] = []);
+      const marcados = [];
+      LOTEAMENTOS.forEach(L => {
+        if(MODO ? L !== MODO.L : !emFoco(L, z, b)) return;
+        if(!L.ll) L.ll = L.lotes.map(l => new google.maps.LatLng(l[4], l[5]));
+        L.lotes.forEach((l, i) => {
+          if(!MODO && L === LOT && q && l[0] !== q) return;
+          if(!MODO && only && situacao(l[3]) !== 'disponivel') return;
+          const p = pr.fromLatLngToDivPixel(L.ll[i]), x = p.x - x0, y = p.y - y0;
+          if(x < -r || y < -r || x > CW + r || y > CH + r) return;
+          visiveis.push({L, l, x:p.x, y:p.y});
+          cores[situacao(l[3])].push([x, y]);
+          if(MODO && condIdDe(RASC, L, l) === MODO.condId) marcados.push([x, y]);
+        });
+      });
+      ['vendido','indisponivel','definitivo','reservado','disponivel'].forEach(k => {
+        if(!cores[k].length) return;
+        ctx.beginPath();
+        cores[k].forEach(([x,y]) => { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832); });
+        ctx.fillStyle = SIT[k].cor; ctx.fill();
+        if(borda){ ctx.lineWidth = borda; ctx.strokeStyle = '#fff'; ctx.stroke(); }
+      });
+      if(marcados.length){
+        ctx.beginPath();
+        marcados.forEach(([x,y]) => { ctx.moveTo(x + r * 1.55, y); ctx.arc(x, y, r * 1.55, 0, 6.2832); });
+        ctx.lineWidth = Math.max(2.5, r * .45); ctx.strokeStyle = '#16c25a'; ctx.stroke();
+      }
+      if(selected && !MODO && selected.L.ll){
+        const p = pr.fromLatLngToDivPixel(selected.L.ll[selected.L.lotes.indexOf(selected.l)]);
+        ctx.beginPath(); ctx.arc(p.x - x0, p.y - y0, r * 1.4, 0, 6.2832);
+        ctx.lineWidth = 3; ctx.strokeStyle = '#0d5d6e'; ctx.stroke();
+      }
+    }
+  }
+  camada = new Camada(); camada.setMap(map);
+}
+
+function loteNoToque(e){
+  const pr = camada && camada.getProjection();
+  if(!pr || !visiveis.length) return null;
+  const p = pr.fromLatLngToDivPixel(e.latLng);
+  const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, map.getZoom());
+  const lim = Math.max(14, 4 / mpp + 4);
+  let melhor = null, dm = lim * lim;
+  visiveis.forEach(v => { const d = (v.x - p.x) ** 2 + (v.y - p.y) ** 2; if(d < dm){ dm = d; melhor = v; } });
+  return melhor;
+}
+function tocarMapa(e){
+  const v = loteNoToque(e);
+  if(MODO){ if(v) alternarMarcacao(v.L, v.l); return; }
+  if(!v){ closeCard(); return; }
+  if(map.getZoom() < 17){ map.setCenter({lat:v.l[4], lng:v.l[5]}); map.setZoom(19); return; }
+  open(v.L, v.l);
+}
+
+function draw(){
+  if(!map) return;
+  const z = map.getZoom(), vista = map.getBounds();
+  if(!MODO){
+    const c = map.getCenter();
+    const foco = LOTEAMENTOS.find(L => emFoco(L, z, vista) && L.bounds.contains(c)) || LOTEAMENTOS.find(L => emFoco(L, z, vista)) || null;
+    if(foco !== LOT){ LOT = foco; if(selected && selected.L !== LOT) closeCard(); cabecalho(); atualizarUrl(); }
+  }
+  $('topo').style.display = LOT && !MODO ? '' : 'none';
+  const mostrarPlanta = $('fPlanta').checked;
+  LOTEAMENTOS.forEach(L => {
+    if(!L.overlay) return;
+    const alvo = mostrarPlanta && (MODO ? L === MODO.L : emFoco(L, z, vista)) ? map : null;
+    if(L.overlay.getMap() !== alvo) L.overlay.setMap(alvo);
+  });
+  if(camada) camada.draw();
+  if(placas) placas.draw();
+  if(LOT){
+    const tot = LOT.lotes.length, liv = LOT.lotes.filter(l => situacao(l[3]) === 'disponivel').length;
+    $('count').textContent = `${liv} de ${tot} disponíveis`;
+  }
+}
+
+/* ----- Card do lote ----- */
+function linkWa(texto){ return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`; }
+function open(LT, l){
+  selected = {L:LT, l}; if(camada) camada.draw();
+  const [quadra, num, area, st, lat, lng, pi] = l;
+  const sit = SIT[situacao(st)], livre = situacao(st) === 'disponivel';
+  const plano = pi != null ? LT.planos[pi] : null, p = plano ? parsePlano(plano) : null;
+  const ent = entradaDe(LT, l);
+  const sm = CONFIG.salarioMinimo;
+  const gm = `https://www.google.com/maps?q=${lat},${lng}`;
+  const ident = `Lote ${num} quadra ${quadra} do ${LT.nome}`;
+  const waConsulta = linkWa(`Qual o valor da entrada parcelada do ${ident}?`);
+  const waAVista = linkWa(`Qual o valor da entrada do ${ident}?`);
+  const botaoConsulta = href => `<a class="btn consulta" href="${href}" target="_blank" rel="noopener">${ICO_CHAT}Consulte com o Corretor</a>`;
+
+  const linhas = [`Me interessei pelo ${ident}`];
+  if(ent.aVista || p) linhas.push('', '🤩Que está com essa Condição Incrível:👇🏻');
+  if(ent.aVista) linhas.push('', '👇🏻ENTRADA À VISTA:', `- ${rs(ent.aVista)}`);
+  if(ent.cond) linhas.push('', '👇🏻ENTRADA FACILITADA:', `- Sinal de ${rs(ent.sinal || 0)} +${ent.parcelas}x de ${rs(ent.valorParcela)}`);
+  if(p){
+    linhas.push('', '👇🏻PARCELAS:');
+    p.fases.forEach((f,i) => {
+      if(i) linhas.push('');
+      linhas.push(`- ${i?'+':''}${f.n}x de ${salMsg(f)}`, `(${rs(f.val*sm)} hoje)`);
+      linhas.push(i ? `> Inicia após quitar as ${p.fases[i-1].n}x` : '> Inicia após quitar a entrada');
+    });
+  }
+  linhas.push('', '👇🏼Localização exata do terreno:', `📍${gm}`);
+
+  let h = `<div class="grip"></div>
+  <div class="head"><div><h2 id="loteTitulo">Lote ${esc(num)}</h2><div class="q">Quadra ${esc(quadra)}</div></div>
+  <button class="close" aria-label="Fechar" onclick="closeCard()">✕</button></div>
+  <span class="pill" style="background:${sit.fundo}"><i style="background:${sit.cor}"></i>${sit.nome}</span>
+  <div class="area"><b>${area ? area.toLocaleString('pt-BR') + ' m²' : ''}</b></div>`;
+  if(livre){
+    h += `<div class="block"><h3>ENTRADA</h3>
+      <div class="row"><span>À vista</span><b>${ent.aVista ? brl(ent.aVista) : botaoConsulta(waAVista)}</b></div>
+      <div class="row"><span>Parcelada</span><b>${ent.cond ? `${brl(ent.sinal || 0)} de sinal<br>+ ${ent.parcelas}x de ${brl(ent.valorParcela)}` : botaoConsulta(waConsulta)}</b></div>
+    </div>`;
+    if(p){
+      h += `<div class="block"><h3>PARCELAMENTO</h3>`;
+      p.fases.forEach((f,i) => {
+        h += `<div class="big"${i?' style="margin-top:10px"':''}>${i?'+ ':''}${f.n}x de ${f.txt} salário mínimo</div>
+        <div class="today">(${brl(f.val*sm)} hoje)${p.fases.length>1 ? '<br>' + (i ? 'Inicia após quitar as ' + p.fases[i-1].n + 'x' : 'Inicia após quitar a entrada') : ''}</div>`;
+      });
+      h += `</div>`;
+    }
+    h += `<div class="actions">
+        <a class="btn wa" href="${linkWa(linhas.join('\n'))}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
+        <a class="btn gm" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">📍 Ir para a localização</a>
+      </div>
+      <div class="note">Parcela corrigida conforme o salário mínimo vigente. Valores sujeitos a confirmação com o corretor.${ATUALIZADO ? ' Disponibilidade atualizada em ' + esc(ATUALIZADO) + '.' : ''}</div>`;
+  } else {
+    h += `<div class="note" style="font-size:.9rem">Este lote está como <b>${sit.nome.toLowerCase()}</b>. Toque numa bolinha cinza para ver as opções livres.</div>`;
+  }
+  $('card').innerHTML = h;
+  $('sheet').classList.add('open');
+}
+function closeCard(){ if(!selected && !$('sheet').classList.contains('open')) return; selected = null; $('sheet').classList.remove('open'); if(camada) camada.draw(); }
+
+/* ----- Filtros, compartilhar, legenda ----- */
+fL.onchange = () => escolher(fL.value);
+fQ.onchange = () => {
+  if(camada) camada.draw();
+  if(!fQ.value || !map || !LOT) return;
+  const bb = new google.maps.LatLngBounds();
+  LOT.lotes.filter(l => l[0] === fQ.value).forEach(l => bb.extend({lat:l[4], lng:l[5]}));
+  map.fitBounds(bb, {top:105, bottom:60, left:30, right:30});
+};
+$('fDisp').onchange = () => camada && camada.draw();
+$('fPlanta').onchange = draw;
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCard(); });
+$('btnShare').onclick = async () => {
+  if(!LOT) return;
+  const url = linkDe(LOT), titulo = LOT.nome + ' | Irineu Imóveis';
+  try {
+    if(navigator.share){ await navigator.share({title: titulo, text: `Veja os lotes do ${LOT.nome}:`, url}); return; }
+  } catch(e){ if(e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast('Link copiado!'); }
+  catch(e){ prompt('Copie o link:', url); }
+};
+$('legenda').innerHTML = Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
+
+/* =====================================================================
+   ÁREA DO CORRETOR — 5 toques na legenda + senha
+   Salva no GitHub (config.json) e vale para todos os clientes.
+   ===================================================================== */
+const SENHA_HASH = '7be3698d8929000ae09da31cf13b704315d383ff34567e2ad7041d9c8c8a7dc3';
+let RASC = null, alterado = false, editando = null, toques = [];
+const abertos = new Set();
+const fmtN = v => numOk(v) ? v.toLocaleString('pt-BR') : '';
+const lerNum = v => { const t = String(v == null ? '' : v).trim(); if(!t) return null;
+  const n = Number(t.replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'')); return isFinite(n) && t.replace(/\D/g,'') !== '' ? n : null; };
+const novoId = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const rLot = id => (RASC.lots[id] = RASC.lots[id] || {conds:[], porEntrada:{}, porLote:{}});
+const ordQ = (a,b) => String(a).localeCompare(String(b), 'pt-BR', {numeric:true});
+const msgAdm = (t, cls) => { $('admMsg').className = 'adm-msg ' + (cls || ''); $('admMsg').textContent = t; };
+function marcarAlterado(){ alterado = true; msgAdm('Alterações ainda não salvas.'); }
+
+$('legenda').addEventListener('click', () => {
+  if(MODO) return;
+  const t = Date.now(); toques = toques.filter(x => t - x < 3000); toques.push(t);
+  if(toques.length >= 5){ toques = []; pedirSenha(); }
+});
+async function sha256(t){
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+function pedirSenha(){
+  if(!LOTEAMENTOS.length) return;
+  if(sessionStorage.getItem('adm') === '1') return abrirAdmin();
+  $('senhaInp').value = ''; $('senhaErro').textContent = '';
+  $('senhaBox').classList.add('open'); setTimeout(() => $('senhaInp').focus(), 50);
+}
+async function conferirSenha(){
+  let ok = false;
+  try { ok = (await sha256($('senhaInp').value.trim())) === SENHA_HASH; } catch(e) { ok = false; }
+  if(!ok){ $('senhaErro').textContent = 'Senha incorreta.'; $('senhaInp').select(); return; }
+  sessionStorage.setItem('adm','1'); $('senhaBox').classList.remove('open'); abrirAdmin();
+}
+$('senhaOk').onclick = conferirSenha;
+$('senhaCancel').onclick = () => $('senhaBox').classList.remove('open');
+$('senhaInp').addEventListener('keydown', e => { if(e.key === 'Enter') conferirSenha(); });
+
+function abrirAdmin(manter){
+  if(!manter || !RASC){
+    RASC = {salarioMinimo: CONFIG.salarioMinimo, whatsapp: CONFIG.whatsapp,
+      situacoes: Object.assign({}, REGRAS.situacoes), lots: JSON.parse(JSON.stringify(REGRAS.lots))};
+    alterado = false; editando = null; msgAdm('');
+  }
+  LOTEAMENTOS.forEach(L => rLot(L.id));
+  closeCard(); desenharAdmin();
+  $('admin').classList.add('open');
+}
+
+/* ----- contas usadas no painel ----- */
+const disponivel = l => situacao(l[3]) === 'disponivel';
+function pendentes(L){ return L.lotes.filter(l => disponivel(l) && !(condDe(RASC, L, l) && valorParcela(condDe(RASC, L, l), l[7]) > 0)); }
+function usoCond(L, id){ return L.lotes.filter(l => condIdDe(RASC, L, l) === id).length; }
+function listaPendentes(lista){
+  const por = {};
+  lista.forEach(l => (por[l[0]] = por[l[0]] || []).push(l[1]));
+  return Object.keys(por).sort(ordQ).map(q => `<b>Quadra ${esc(q)}:</b> ${por[q].sort(ordQ).map(esc).join(', ')}`).join('<br>');
+}
+
+function formCond(L, c){
+  return `<div class="form" data-form="${esc(L.id)}" data-c="${c ? esc(c.id) : ''}">
+    <div class="flds">
+      <label class="fl">Sinal (R$)<input class="inp" inputmode="decimal" data-f="sinal" value="${c ? fmtN(c.sinal) : ''}" placeholder="ex.: 1.000"></label>
+      <label class="fl">Nº de parcelas<input class="inp" inputmode="numeric" data-f="parcelas" value="${c ? fmtN(c.parcelas) : ''}" placeholder="ex.: 12"></label>
+      <label class="fl">Valor da parcela<input class="inp" inputmode="decimal" data-f="valor" value="${c && numOk(c.valor) ? fmtN(c.valor) : ''}" placeholder="automático"></label>
+    </div>
+    <div class="mini" style="margin-top:6px">Deixe o valor da parcela vazio para calcular sozinho em cada lote: (entrada à vista − sinal) ÷ parcelas.</div>
+    <div class="bb">
+      <button class="btn pri" data-act="salvar-cond">${c ? 'Salvar condição' : 'Criar condição'}</button>
+      <button class="btn sec" data-act="cancel-edit">Cancelar</button>
+      ${c ? '<button class="btn del" data-act="excluir">Excluir</button>' : ''}
+    </div></div>`;
+}
+
+function desenharAdmin(){
+  const scroll = $('admCorpo').scrollTop;
+  const totPend = LOTEAMENTOS.reduce((s, L) => s + pendentes(L).length, 0);
+  const temChave = !!localStorage.getItem('gh_token');
+  const codigos = {};
+  LOTEAMENTOS.forEach(L => L.lotes.forEach(l => { const c = codigos[l[3]] || (codigos[l[3]] = {n:0, ex:null}); c.n++; if(!c.ex) c.ex = `Lote ${l[1]} Quadra ${l[0]} (${L.nome.replace(/^Loteamento\s+/i,'')})`; }));
+
+  let h = `
+  <div class="sec"><h3>GERAL</h3>
+    <div class="flds">
+      <label class="fl">Salário mínimo (R$)<input class="inp" inputmode="decimal" data-cfg="salarioMinimo" value="${fmtN(RASC.salarioMinimo)}"></label>
+      <label class="fl">Seu WhatsApp (55 + DDD + número)<input class="inp" inputmode="tel" data-cfg="whatsapp" value="${esc(RASC.whatsapp)}"></label>
+    </div></div>
+
+  <div class="sec"><h3>PENDÊNCIAS</h3>
+    <p class="dica">Lotes <b>disponíveis</b> que ainda não têm entrada parcelada. No site eles mostram o botão <b>Consulte com o Corretor</b>.</p>
+    <div class="box">${totPend ? `<div class="tit">${totPend} lotes pendentes</div><div class="sub">${LOTEAMENTOS.map(L => ({L, n: pendentes(L).length})).filter(x => x.n)
+      .map(x => `<button class="lnkbtn" data-act="ir" data-l="${esc(x.L.id)}">${esc(x.L.nome.replace(/^Loteamento\s+/i,''))} (${x.n})</button>`).join(' · ')}</div>`
+      : '<div class="tit">✓ Nenhuma pendência</div>'}</div></div>
+
+  <div class="sec"><h3>LOTEAMENTOS</h3>
+    <p class="dica">Em cada loteamento: crie as condições de entrada parcelada e aplique por <b>valor de entrada</b> (todos os lotes com a mesma entrada de uma vez) ou <b>marcando os lotes no mapa</b>.</p>
+    ${LOTEAMENTOS.map(L => {
+      const r = rLot(L.id), pend = pendentes(L);
+      const ents = {};
+      L.lotes.forEach(l => { const k = String(l[7] || 0), e = ents[k] || (ents[k] = {n:0, d:0}); e.n++; if(disponivel(l)) e.d++; });
+      return `<details class="box" data-lot="${esc(L.id)}"${abertos.has(L.id) ? ' open' : ''}>
+        <summary><span><span class="tit">${esc(L.nome)}</span>${pend.length ? `<span class="badge">${pend.length} pendentes</span>` : '<span class="badge ok">completo</span>'}
+          <div class="sub">${L.lotes.length} lotes · ${L.lotes.filter(disponivel).length} disponíveis</div></span></summary>
+
+        <div class="sub2">CONDIÇÕES DE ENTRADA PARCELADA</div>
+        ${r.conds.length ? '' : '<div class="mini">Nenhuma condição criada ainda.</div>'}
+        ${r.conds.map(c => editando === c.id ? formCond(L, c) : `
+          <div class="cond"><div class="cx"><b>${esc(textoCondCurto(c))}</b><span>${usoCond(L, c.id)} lotes usando</span></div>
+            <button class="ico" data-act="edit" data-l="${esc(L.id)}" data-c="${esc(c.id)}" aria-label="Editar condição" title="Editar">✏️</button>
+            <button class="ico marcar" data-act="marcar" data-l="${esc(L.id)}" data-c="${esc(c.id)}">📍 Marcar lotes</button></div>`).join('')}
+        ${editando === 'novo:' + L.id ? formCond(L, null) : `<button class="lnkbtn" data-act="novo" data-l="${esc(L.id)}">+ Nova condição</button>`}
+
+        <div class="sub2">APLICAR POR VALOR DE ENTRADA</div>
+        <div class="mini">Vale para todos os lotes deste loteamento com essa entrada. Lotes marcados no mapa têm prioridade.</div>
+        ${Object.keys(ents).sort((a,b) => a - b).map(k => `
+          <div class="entr"><div class="ex">${+k ? 'Entrada ' + rs(+k) : 'Sem valor no Cód.'}<small>${ents[k].n} lotes · ${ents[k].d} disponíveis</small></div>
+            <select class="inp" data-sel="entrada" data-l="${esc(L.id)}" data-ent="${k}" aria-label="Condição para entrada ${+k ? rs(+k) : 'sem valor'}">
+              <option value="">Consulte com o corretor</option>
+              ${r.conds.map(c => `<option value="${esc(c.id)}"${r.porEntrada[k] === c.id ? ' selected' : ''}>${esc(textoCondCurto(c))}</option>`).join('')}
+            </select></div>`).join('')}
+
+        <div class="sub2">PENDENTES (${pend.length})</div>
+        ${pend.length ? `<div class="pend">${listaPendentes(pend)}</div>` : '<div class="mini">Todos os lotes disponíveis têm entrada parcelada.</div>'}
+      </details>`; }).join('')}
+  </div>
+
+  <div class="sec"><h3>CHAVE DE ACESSO DO GITHUB</h3>
+    <p class="dica">É ela que permite salvar daqui. Fica guardada só neste aparelho.</p>
+    <div class="box">${temChave
+      ? `<div class="tit">✓ Chave salva neste aparelho</div><div class="sub"><button class="lnkbtn" data-act="trocar-chave">Trocar ou remover a chave</button></div>`
+      : `<label class="fl">Cole a chave (começa com github_pat_)<input class="inp" id="admToken" autocomplete="off" spellcheck="false"></label>`}
+    </div></div>`;
+  $('admCorpo').innerHTML = h;
+  $('admCorpo').scrollTop = scroll;
+}
+
+$('admCorpo').addEventListener('toggle', e => {
+  const d = e.target; if(!d.dataset || !d.dataset.lot) return;
+  d.open ? abertos.add(d.dataset.lot) : abertos.delete(d.dataset.lot);
+}, true);
+
+$('admCorpo').addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.cfg; if(!k) return;
+  RASC[k] = k === 'whatsapp' ? e.target.value.replace(/\D/g,'') : lerNum(e.target.value);
+  marcarAlterado();
+});
+
+$('admCorpo').addEventListener('change', e => {
+  const s = e.target; if(!s.dataset || !s.dataset.sel) return;
+  if(s.dataset.sel === 'entrada'){
+    const r = rLot(s.dataset.l);
+    if(s.value) r.porEntrada[s.dataset.ent] = s.value; else delete r.porEntrada[s.dataset.ent];
+  } else if(s.dataset.sel === 'sit'){
+    RASC.situacoes[s.dataset.code] = s.value;
+  }
+  marcarAlterado(); desenharAdmin();
+});
+
+$('admCorpo').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act;
+  if(act === 'ir'){
+    abertos.add(b.dataset.l); desenharAdmin();
+    const d = $('admCorpo').querySelector(`details[data-lot="${CSS.escape(b.dataset.l)}"]`);
+    if(d) d.scrollIntoView({block:'start', behavior:'smooth'});
+  } else if(act === 'edit'){ editando = b.dataset.c; desenharAdmin(); }
+  else if(act === 'novo'){ editando = 'novo:' + b.dataset.l; desenharAdmin(); }
+  else if(act === 'cancel-edit'){ editando = null; desenharAdmin(); }
+  else if(act === 'salvar-cond'){
+    const f = b.closest('.form'), lid = f.dataset.form, cid = f.dataset.c;
+    const v = n => lerNum(f.querySelector(`[data-f="${n}"]`).value);
+    const sinal = v('sinal') || 0, parcelas = Math.round(v('parcelas') || 0), valor = v('valor');
+    if(!(parcelas > 0)){ msgAdm('Informe o número de parcelas da entrada.', 'err'); return; }
+    const r = rLot(lid);
+    if(cid){ Object.assign(r.conds.find(c => c.id === cid), {sinal, parcelas, valor: valor > 0 ? valor : null}); editando = null; marcarAlterado(); desenharAdmin(); }
+    else {
+      const nova = {id: novoId(), sinal, parcelas, valor: valor > 0 ? valor : null};
+      r.conds.push(nova); editando = null; marcarAlterado(); desenharAdmin();
+      msgAdm('Condição criada. Agora aplique por valor de entrada ou toque em "Marcar lotes".');
+    }
+  } else if(act === 'excluir'){
+    const f = b.closest('.form'), lid = f.dataset.form, cid = f.dataset.c, r = rLot(lid);
+    if(!confirm('Excluir esta condição? Os lotes que usam ela voltam para "Consulte com o corretor".')) return;
+    r.conds = r.conds.filter(c => c.id !== cid);
+    Object.keys(r.porEntrada).forEach(k => { if(r.porEntrada[k] === cid) delete r.porEntrada[k]; });
+    Object.keys(r.porLote).forEach(k => { if(r.porLote[k] === cid) delete r.porLote[k]; });
+    editando = null; marcarAlterado(); desenharAdmin();
+  } else if(act === 'marcar'){ entrarModo(b.dataset.l, b.dataset.c); }
+  else if(act === 'trocar-chave'){ localStorage.removeItem('gh_token'); desenharAdmin(); }
+});
+
+/* ----- Marcar lotes no mapa ----- */
+function entrarModo(lid, cid){
+  const L = LOTEAMENTOS.find(x => x.id === lid); if(!L) return;
+  MODO = {L, condId: cid, copia: JSON.stringify(rLot(lid))};
+  $('admin').classList.remove('open'); closeCard();
+  $('selbar').classList.add('on'); atualizarSelbar();
+  map.fitBounds(L.bounds, {top:20, bottom:150, left:16, right:16});
+  draw();
+}
+function atualizarSelbar(){
+  const c = rLot(MODO.L.id).conds.find(x => x.id === MODO.condId);
+  $('selT1').textContent = `${MODO.L.nome.replace(/^Loteamento\s+/i,'')}: ${c ? textoCondCurto(c) : ''}`;
+  $('selT2').textContent = `${usoCond(MODO.L, MODO.condId)} lotes marcados (contorno verde). Toque nos lotes para marcar ou desmarcar.`;
+}
+function alternarMarcacao(L, l){
+  const r = rLot(L.id), k = chaveLote(l), ent = String(l[7] || 0), id = MODO.condId;
+  if(condIdDe(RASC, L, l) === id){
+    if(r.porEntrada[ent] === id) r.porLote[k] = '-'; else delete r.porLote[k];
+  } else {
+    if(r.porEntrada[ent] === id) delete r.porLote[k]; else r.porLote[k] = id;
+  }
+  alterado = true; atualizarSelbar(); camada.draw();
+}
+function sairModo(){ MODO = null; $('selbar').classList.remove('on'); draw(); abrirAdmin(true); }
+$('selCancel').onclick = () => { RASC.lots[MODO.L.id] = JSON.parse(MODO.copia); sairModo(); };
+$('selOk').onclick = () => { sairModo(); salvarAdmin(); };
+
+/* ----- Salvar no GitHub ----- */
+function b64(s){ let bin = ''; new TextEncoder().encode(s).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
+function pacote(){
+  const lots = {};
+  Object.entries(RASC.lots).forEach(([id, r]) => {
+    const porLote = Object.fromEntries(Object.entries(r.porLote).filter(([,v]) => v === '-' || r.conds.some(c => c.id === v)));
+    const porEntrada = Object.fromEntries(Object.entries(r.porEntrada).filter(([,v]) => r.conds.some(c => c.id === v)));
+    if(r.conds.length || Object.keys(porLote).length) lots[id] = {conds: r.conds, porEntrada, porLote};
+  });
+  return {salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, situacoes: RASC.situacoes, lots, salvoEm: new Date().toISOString()};
+}
+async function salvarAdmin(){
+  if(!(RASC.salarioMinimo > 0)) return msgAdm('Confira o valor do salário mínimo.', 'err');
+  if(String(RASC.whatsapp).length < 12) return msgAdm('Confira o WhatsApp: 55 + DDD + número.', 'err');
+  const token = localStorage.getItem('gh_token') || ($('admToken') ? $('admToken').value.trim() : '');
+  if(!token){ msgAdm('Cole a chave do GitHub no fim da página para poder salvar.', 'err'); return; }
+  const conteudo = pacote();
+  const url = `https://api.github.com/repos/${CONFIG.repo}/contents/config.json`;
+  const head = {Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json'};
+  $('admSalvar').disabled = true; $('selOk').disabled = true; msgAdm('Salvando…');
+  try {
+    const g = await fetch(url + '?ref=main&t=' + Date.now(), {headers: head, cache: 'no-store'});
+    if(g.status === 401 || g.status === 403){ localStorage.removeItem('gh_token'); desenharAdmin(); throw new Error('Chave do GitHub inválida ou sem permissão. Cole uma chave nova.'); }
+    const sha = g.ok ? (await g.json()).sha : undefined;
+    const body = {message: 'Condições atualizadas pela Área do corretor', content: b64(JSON.stringify(conteudo, null, 1)), branch: 'main'};
+    if(sha) body.sha = sha;
+    const r = await fetch(url, {method: 'PUT', headers: Object.assign({'Content-Type': 'application/json'}, head), body: JSON.stringify(body)});
+    if(r.status === 401 || r.status === 403){ localStorage.removeItem('gh_token'); desenharAdmin(); throw new Error('A chave não tem permissão de escrita neste repositório.'); }
+    if(r.status === 409 || r.status === 422) throw new Error('O arquivo mudou enquanto você editava. Toque em Salvar de novo.');
+    if(!r.ok) throw new Error('O GitHub recusou (erro ' + r.status + '). Tente de novo em instantes.');
+    localStorage.setItem('gh_token', token);
+    aplicarConfig(conteudo); alterado = false;
+    desenharAdmin(); draw();
+    msgAdm('✓ Salvo! Para você já vale agora; para os clientes, em até 5 minutos.', 'ok');
+  } catch(e){
+    msgAdm(e.message && !/fetch|network/i.test(e.message) ? e.message : 'Sem conexão com o GitHub. Verifique a internet e tente de novo.', 'err');
+  } finally { $('admSalvar').disabled = false; $('selOk').disabled = false; }
+}
+$('admSalvar').onclick = salvarAdmin;
+$('admFechar').onclick = () => {
+  if(alterado && !confirm('Fechar sem salvar as alterações?')) return;
+  alterado = false; RASC = null; $('admin').classList.remove('open');
+};
+
+(function(){ const s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(CONFIG.googleMapsKey) + '&callback=initMap&loading=async';
+  s.async = true; document.head.appendChild(s); })();
+</script>
+</body>
+</html>
