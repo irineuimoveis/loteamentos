@@ -157,6 +157,16 @@ details.box[open] summary::after{content:"▴"}
 .badge.ok{background:#e1f4e8;color:#126a39}
 .pend{font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--sea-soft);border-radius:10px;padding:8px 10px;margin-top:6px;max-height:180px;overflow:auto}
 .sub2{font-size:.78rem;font-weight:800;color:var(--muted);margin:12px 0 2px;letter-spacing:.03em}
+.fase{display:grid;grid-template-columns:1fr 1fr 36px;gap:8px;align-items:end;margin-top:8px}
+.fase .ico{height:40px;width:36px}
+.fase .ord{grid-column:1/-1;font-size:.72rem;font-weight:800;color:var(--sea);margin-bottom:-4px}
+textarea.inp{resize:vertical;min-height:110px;font-size:14px;line-height:1.4}
+details.colar{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:10px;background:var(--paper)}
+details.colar summary{cursor:pointer;font-weight:800;font-size:.86rem;color:var(--sea)}
+details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
+.lido{font-size:.8rem;background:#e1f4e8;color:#126a39;border-radius:8px;padding:6px 9px;margin-top:8px}
+.ico.lapis{width:28px;height:28px;font-size:.8rem;display:inline-grid;vertical-align:middle;margin-left:6px;border-radius:8px}
+.avf{flex:1 1 100%;margin:4px 0 2px}
 .lnkbtn{background:none;border:0;color:var(--sea);font:inherit;font-weight:800;font-size:.86rem;padding:6px 0;cursor:pointer}
 .sitrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .sitrow:last-child{border-bottom:0}
@@ -267,39 +277,72 @@ function normalizaRegras(r){
   const lots = {};
   Object.entries(r.lots || {}).forEach(([id, v]) => {
     lots[id] = {
-      conds: (v.conds || []).filter(c => c && c.id && numOk(c.parcelas) && c.parcelas > 0)
-        .map(c => ({id:String(c.id), sinal: numOk(c.sinal) ? c.sinal : 0, parcelas: Math.round(c.parcelas), valor: numOk(c.valor) && c.valor > 0 ? c.valor : null})),
+      conds: (v.conds || []).map(normCond).filter(Boolean),
       porEntrada: Object.assign({}, v.porEntrada || {}),
-      porLote: Object.assign({}, v.porLote || {})
+      porLote: Object.assign({}, v.porLote || {}),
+      av: normAv(v.av)
     };
   });
   const sit = {};
   Object.entries(r.situacoes || {}).forEach(([k, v]) => { if(SIT[v]) sit[k] = v; });
   return {situacoes: sit, lots};
 }
+/* Entrada à vista editada pelo corretor: av.porLote["A|12"] vale mais que av.porEntrada["15000"] (Cód. original) */
+function normAv(a){
+  const so = o => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => [k, +v]).filter(([, v]) => numOk(v) && v > 0));
+  return {porEntrada: so(a && a.porEntrada), porLote: so(a && a.porLote)};
+}
+function aVistaDe(R, L, l){
+  const r = R && R.lots && R.lots[L.id], orig = l[7] || 0;
+  if(r && r.av){
+    const k = chaveLote(l);
+    if(r.av.porLote[k] > 0) return r.av.porLote[k];
+    if(r.av.porEntrada[String(orig)] > 0) return r.av.porEntrada[String(orig)];
+  }
+  return orig || null;
+}
 function condIdDe(R, L, l){
   const r = R.lots[L.id]; if(!r) return null;
   const cl = r.porLote[chaveLote(l)];
   if(cl === '-') return null;
-  const id = cl || r.porEntrada[String(l[7] || 0)];
+  const id = cl || r.porEntrada[String(aVistaDe(R, L, l) || 0)];
   return id && r.conds.some(c => c.id === id) ? id : null;
 }
 function condDe(R, L, l){ const id = condIdDe(R, L, l); return id ? R.lots[L.id].conds.find(c => c.id === id) : null; }
-function valorParcela(c, aVista){
+/* Etapas da entrada: [{n, valor}] — a última pode ficar sem valor (calcula sozinha).
+   Financiamento opcional da condição: [{n, f}] (f = fração do salário) — substitui o do forinvest. */
+function normCond(c){
+  if(!c || !c.id) return null;
+  let fases = Array.isArray(c.fases) ? c.fases : (numOk(c.parcelas) ? [{n:c.parcelas, valor:c.valor}] : []);
+  fases = fases.map(f => ({n: Math.round(+f.n), valor: numOk(+f.valor) && +f.valor > 0 && f.valor !== null ? +f.valor : null})).filter(f => f.n > 0);
+  if(!fases.length) return null;
+  const financ = (Array.isArray(c.financ) ? c.financ : []).map(f => ({n: Math.round(+f.n), f: +f.f})).filter(f => f.n > 0 && f.f > 0);
+  return {id: String(c.id), sinal: numOk(+c.sinal) ? +c.sinal : 0, fases, financ};
+}
+function calcFases(c, aVista){
   if(!c) return null;
-  if(numOk(c.valor)) return c.valor;
-  return aVista ? Math.round((aVista - (c.sinal || 0)) / c.parcelas) : null;
+  const fs = c.fases.map(f => ({n: f.n, valor: f.valor}));
+  const faltando = fs.filter(f => !numOk(f.valor));
+  if(faltando.length > 1) return null;
+  if(faltando.length === 1){
+    if(fs[fs.length - 1].valor != null || !aVista) return null;
+    const pago = (c.sinal || 0) + fs.slice(0, -1).reduce((s, f) => s + f.n * f.valor, 0);
+    const v = Math.round((aVista - pago) / fs[fs.length - 1].n);
+    if(!(v > 0)) return null;
+    fs[fs.length - 1].valor = v;
+  }
+  return fs;
 }
 function entradaDe(L, l){
-  const aVista = l[7] || null, c = condDe(REGRAS, L, l);
-  const vp = valorParcela(c, aVista);
-  return {aVista, cond: c && vp > 0 ? c : null, sinal: c ? c.sinal : 0, parcelas: c ? c.parcelas : 0, valorParcela: vp};
+  const aVista = aVistaDe(REGRAS, L, l), c = condDe(REGRAS, L, l), fases = calcFases(c, aVista);
+  return {aVista, cond: fases ? c : null, sinal: c ? c.sinal : 0, fases};
 }
-const textoCond = (c, aVista) => {
-  const vp = valorParcela(c, aVista);
-  return `${rs(c.sinal || 0)} + ${c.parcelas}x de ${vp ? rs(vp) : (numOk(c.valor) ? rs(c.valor) : 'parcela automática')}`;
-};
-const textoCondCurto = c => `Sinal ${rs(c.sinal || 0)} + ${c.parcelas}x ${numOk(c.valor) ? 'de ' + rs(c.valor) : '(parcela automática)'}`;
+const FRAC_TXT = {0.25:'¼', 0.5:'½', 0.75:'¾'};
+function fracTxt(f){ const i = Math.floor(f), r = Math.round((f - i) * 100) / 100; return (i ? String(i) : '') + (r ? (FRAC_TXT[r] || (i ? ',' : '0,') + String(r).split('.')[1]) : '') || '0'; }
+const planoDeFinanc = fin => fin && fin.length ? {fases: fin.map(x => ({n: x.n, val: x.f, txt: fracTxt(x.f)}))} : null;
+const financTexto = fin => fin.map(x => `${x.n}x ${Math.round(x.f * 100)}%`).join(' + ');
+const textoCondCurto = c => `Sinal ${rs(c.sinal || 0)} + ` + c.fases.map(f => `${f.n}x ${numOk(f.valor) ? 'de ' + rs(f.valor) : '(automática)'}`).join(' + ')
+  + (c.financ && c.financ.length ? ` · Financ. ${financTexto(c.financ)}` : '');
 
 /* ---------- Carregar dados e configurações ---------- */
 const dadosPromise = fetch(RAW + 'data.json?t=' + Date.now(), {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
@@ -500,13 +543,14 @@ function criarCamada(){
         if(MODO ? L !== MODO.L : !emFoco(L, z, b)) return;
         if(!L.ll) L.ll = L.lotes.map(l => new google.maps.LatLng(l[4], l[5]));
         L.lotes.forEach((l, i) => {
+          if(MODO && MODO.tipo === 'av' && !MODO.chaves.has(chaveLote(l))) return;
           if(!MODO && L === LOT && q && l[0] !== q) return;
           if(!MODO && only && situacao(l[3]) !== 'disponivel') return;
           const p = pr.fromLatLngToDivPixel(L.ll[i]), x = p.x - x0, y = p.y - y0;
           if(x < -r || y < -r || x > CW + r || y > CH + r) return;
           visiveis.push({L, l, x:p.x, y:p.y});
           cores[situacao(l[3])].push([x, y]);
-          if(MODO && condIdDe(RASC, L, l) === MODO.condId) marcados.push([x, y]);
+          if(MODO && (MODO.tipo === 'av' ? aVistaDe(RASC, L, l) === MODO.novo : condIdDe(RASC, L, l) === MODO.condId)) marcados.push([x, y]);
         });
       });
       ['vendido','indisponivel','definitivo','reservado','disponivel'].forEach(k => {
@@ -578,8 +622,9 @@ function open(LT, l){
   selected = {L:LT, l}; if(camada) camada.draw();
   const [quadra, num, area, st, lat, lng, pi] = l;
   const sit = SIT[situacao(st)], livre = situacao(st) === 'disponivel';
-  const plano = pi != null ? LT.planos[pi] : null, p = plano ? parsePlano(plano) : null;
-  const ent = entradaDe(LT, l);
+  const ent = entradaDe(LT, l), condL = condDe(REGRAS, LT, l);
+  const plano = pi != null ? LT.planos[pi] : null;
+  const p = (condL && planoDeFinanc(condL.financ)) || (plano ? parsePlano(plano) : null);
   const sm = CONFIG.salarioMinimo;
   const gm = `https://www.google.com/maps?q=${lat},${lng}`;
   const ident = `Lote ${num} quadra ${quadra} do ${LT.nome}`;
@@ -590,7 +635,14 @@ function open(LT, l){
   const linhas = [`Me interessei pelo ${ident}`];
   if(ent.aVista || p) linhas.push('', '🤩Que está com essa Condição Incrível:👇🏻');
   if(ent.aVista) linhas.push('', '👇🏻ENTRADA À VISTA:', `- ${rs(ent.aVista)}`);
-  if(ent.cond) linhas.push('', '👇🏻ENTRADA FACILITADA:', `- Sinal de ${rs(ent.sinal || 0)} +${ent.parcelas}x de ${rs(ent.valorParcela)}`);
+  if(ent.cond){
+    linhas.push('', '👇🏻ENTRADA FACILITADA:');
+    if(ent.fases.length === 1) linhas.push(`- Sinal de ${rs(ent.sinal || 0)} +${ent.fases[0].n}x de ${rs(ent.fases[0].valor)}`);
+    else {
+      linhas.push(`- Sinal de ${rs(ent.sinal || 0)} à vista`);
+      ent.fases.forEach((f, i) => { linhas.push('', `- ${f.n}x de ${rs(f.valor)}`); if(i) linhas.push(`> Inicia só após quitar as ${ent.fases[i-1].n}x`); });
+    }
+  }
   if(p){
     linhas.push('', '👇🏻PARCELAS:');
     p.fases.forEach((f,i) => {
@@ -609,7 +661,7 @@ function open(LT, l){
   if(livre){
     h += `<div class="block"><h3>ENTRADA</h3>
       <div class="row"><span>À vista</span><b>${ent.aVista ? brl(ent.aVista) : botaoConsulta(waAVista)}</b></div>
-      <div class="row"><span>Parcelada</span><b>${ent.cond ? `${brl(ent.sinal || 0)} de sinal<br>+ ${ent.parcelas}x de ${brl(ent.valorParcela)}` : botaoConsulta(waConsulta)}</b></div>
+      <div class="row"><span>Parcelada</span><b>${ent.cond ? `${brl(ent.sinal || 0)} de sinal` + ent.fases.map((f, i) => `<br>+ ${f.n}x de ${brl(f.valor)}${i ? `<br><small style="font-weight:600;color:var(--muted)">inicia após quitar as ${ent.fases[i-1].n}x</small>` : ''}`).join('') : botaoConsulta(waConsulta)}</b></div>
     </div>`;
     if(p){
       h += `<div class="block"><h3>PARCELAMENTO</h3>`;
@@ -666,7 +718,7 @@ const fmtN = v => numOk(v) ? v.toLocaleString('pt-BR') : '';
 const lerNum = v => { const t = String(v == null ? '' : v).trim(); if(!t) return null;
   const n = Number(t.replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'')); return isFinite(n) && t.replace(/\D/g,'') !== '' ? n : null; };
 const novoId = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-const rLot = id => (RASC.lots[id] = RASC.lots[id] || {conds:[], porEntrada:{}, porLote:{}});
+const rLot = id => { const r = (RASC.lots[id] = RASC.lots[id] || {conds:[], porEntrada:{}, porLote:{}}); r.av = r.av || {porEntrada:{}, porLote:{}}; return r; };
 const ordQ = (a,b) => String(a).localeCompare(String(b), 'pt-BR', {numeric:true});
 const msgAdm = (t, cls) => { $('admMsg').className = 'adm-msg ' + (cls || ''); $('admMsg').textContent = t; };
 function marcarAlterado(){ alterado = true; msgAdm('Alterações ainda não salvas.'); }
@@ -709,7 +761,8 @@ function abrirAdmin(manter){
 
 /* ----- contas usadas no painel ----- */
 const disponivel = l => situacao(l[3]) === 'disponivel';
-function pendentes(L){ return L.lotes.filter(l => disponivel(l) && !(condDe(RASC, L, l) && valorParcela(condDe(RASC, L, l), l[7]) > 0)); }
+function pendentes(L){ return L.lotes.filter(l => disponivel(l) && !calcFases(condDe(RASC, L, l), aVistaDe(RASC, L, l))); }
+let editAV = null;   // {lid, k} linha de entrada sendo editada
 function usoCond(L, id){ return L.lotes.filter(l => condIdDe(RASC, L, l) === id).length; }
 function listaPendentes(lista){
   const por = {};
@@ -717,14 +770,62 @@ function listaPendentes(lista){
   return Object.keys(por).sort(ordQ).map(q => `<b>Quadra ${esc(q)}:</b> ${por[q].sort(ordQ).map(esc).join(', ')}`).join('<br>');
 }
 
+/* ----- formulário de condição (com etapas e colar do WhatsApp) ----- */
+let formEst = null, formLido = '';
+function iniciarForm(c){
+  formEst = c ? {sinal: c.sinal, fases: c.fases.map(f => ({n: f.n, valor: f.valor})), financ: c.financ.length ? financTexto(c.financ) : '', colar: ''}
+              : {sinal: null, fases: [{n: null, valor: null}], financ: '', colar: ''};
+  formLido = '';
+}
+function lerForm(f){
+  if(!f || !formEst) return;
+  const val = s => { const el = f.querySelector(s); return el ? el.value : ''; };
+  formEst.sinal = lerNum(val('[data-f="sinal"]'));
+  formEst.financ = val('[data-f="financ"]');
+  formEst.colar = val('[data-f="colar"]');
+  formEst.fases = formEst.fases.map((x, i) => ({n: lerNum(val(`[data-fn="${i}"]`)), valor: lerNum(val(`[data-fv="${i}"]`))}));
+}
+const dinheiro = s => { s = String(s).trim(); if(s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); const n = Number(s); return isFinite(n) ? n : null; };
+function fracDe(t){
+  t = String(t).replace(/¼/g, ' 1/4').replace(/½/g, ' 1/2').replace(/¾/g, ' 3/4').replace(',', '.').trim();
+  let v = 0; t.split(/\s+/).forEach(p => { if(!p) return; if(p.includes('/')){ const [a, b] = p.split('/'); v += a / b; } else v += +p; });
+  return isFinite(v) ? v : 0;
+}
+function lerFinanc(t){
+  const achados = [];
+  String(t).replace(/(\d+)\s*x\s*(?:de\s*)?(\d+(?:[.,]\d+)?)\s*%/gi, (m, n, pc, pos) => { achados.push({pos, n:+n, f: +pc.replace(',', '.') / 100}); return m; });
+  String(t).replace(/(\d+)\s*x\s*(?:de\s*)?((?:\d+\s*)?(?:\d\/\d|[¼½¾])|\d+(?:[.,]\d+)?)\s*(?:do\s+|de\s+)?sal[aá]rios?/gi, (m, n, v, pos) => { achados.push({pos, n:+n, f: fracDe(v)}); return m; });
+  return achados.sort((a, b) => a.pos - b.pos).filter(x => x.n > 0 && x.f > 0).map(({n, f}) => ({n, f}));
+}
+function lerMensagem(t){
+  t = String(t).replace(/\u00a0/g, ' ');
+  const ms = t.match(/sinal[^0-9]{0,20}(\d[\d.,]*)/i);
+  const fases = [];
+  t.replace(/(\d+)\s*x\s*(?:de\s*)?R\$\s*(\d[\d.,]*)/gi, (m, n, v) => { fases.push({n:+n, valor: dinheiro(v.replace(/[.,]$/, ''))}); return m; });
+  return {sinal: ms ? dinheiro(ms[1].replace(/[.,]$/, '')) : null, fases, financ: lerFinanc(t)};
+}
+
 function formCond(L, c){
+  if(!formEst) iniciarForm(c);
+  const F = formEst, ult = F.fases.length - 1;
   return `<div class="form" data-form="${esc(L.id)}" data-c="${c ? esc(c.id) : ''}">
-    <div class="flds">
-      <label class="fl">Sinal (R$)<input class="inp" inputmode="decimal" data-f="sinal" value="${c ? fmtN(c.sinal) : ''}" placeholder="ex.: 1.000"></label>
-      <label class="fl">Nº de parcelas<input class="inp" inputmode="numeric" data-f="parcelas" value="${c ? fmtN(c.parcelas) : ''}" placeholder="ex.: 12"></label>
-      <label class="fl">Valor da parcela<input class="inp" inputmode="decimal" data-f="valor" value="${c && numOk(c.valor) ? fmtN(c.valor) : ''}" placeholder="automático"></label>
-    </div>
-    <div class="mini" style="margin-top:6px">Deixe o valor da parcela vazio para calcular sozinho em cada lote: (entrada à vista − sinal) ÷ parcelas.</div>
+    <details class="colar"${F.colar ? ' open' : ''}><summary>📋 Colar condição pronta do WhatsApp</summary>
+      <div class="mini" style="margin:6px 0">Cole a mensagem inteira. Só o sinal, as parcelas da entrada e o financiamento são aproveitados; o resto é ignorado.</div>
+      <textarea class="inp" data-f="colar" placeholder="Cole aqui a mensagem…">${esc(F.colar)}</textarea>
+      <button class="btn sec" data-act="ler-msg">Ler mensagem e preencher</button>
+      ${formLido ? `<div class="lido">${formLido}</div>` : ''}
+    </details>
+    <div class="flds"><label class="fl">Sinal à vista (R$)<input class="inp" inputmode="decimal" data-f="sinal" value="${fmtN(F.sinal)}" placeholder="ex.: 1.000"></label></div>
+    <div class="sub2">PARCELAS DA ENTRADA</div>
+    ${F.fases.map((x, i) => `<div class="fase">${F.fases.length > 1 ? `<div class="ord">${i ? `${i + 1}ª etapa · começa após quitar a anterior` : '1ª etapa'}</div>` : ''}
+      <label class="fl">Nº de parcelas<input class="inp" inputmode="numeric" data-fn="${i}" value="${fmtN(x.n)}" placeholder="ex.: ${i ? 12 : 6}"></label>
+      <label class="fl">Valor da parcela<input class="inp" inputmode="decimal" data-fv="${i}" value="${fmtN(x.valor)}" placeholder="${i === ult ? 'automático' : 'obrigatório'}"></label>
+      ${i ? `<button class="ico" data-act="rem-fase" data-i="${i}" aria-label="Remover etapa ${i + 1}" title="Remover">✕</button>` : '<span></span>'}</div>`).join('')}
+    <button class="lnkbtn" data-act="add-fase">＋ Adicionar mais parcelas depois destas</button>
+    <div class="mini">Só a última etapa pode ficar sem valor: ela é calculada em cada lote com o que falta da entrada à vista.</div>
+    <div class="sub2">FINANCIAMENTO (opcional)</div>
+    <input class="inp" data-f="financ" value="${esc(F.financ)}" placeholder="ex.: 36x 50% + 204x 75%" autocomplete="off">
+    <div class="mini" style="margin-top:4px">Vazio = usa o financiamento do forinvest (última linha da tabela de preços).</div>
     <div class="bb">
       <button class="btn pri" data-act="salvar-cond">${c ? 'Salvar condição' : 'Criar condição'}</button>
       <button class="btn sec" data-act="cancel-edit">Cancelar</button>
@@ -732,7 +833,8 @@ function formCond(L, c){
     </div></div>`;
 }
 
-function desenharAdmin(){
+function desenharAdmin(lerAntes){
+  if(lerAntes){ const fa = $('admCorpo').querySelector('.form'); if(fa) lerForm(fa); }
   const scroll = $('admCorpo').scrollTop;
   const totPend = LOTEAMENTOS.reduce((s, L) => s + pendentes(L).length, 0);
   const temChave = !!localStorage.getItem('gh_token');
@@ -757,7 +859,7 @@ function desenharAdmin(){
     ${LOTEAMENTOS.map(L => {
       const r = rLot(L.id), pend = pendentes(L);
       const ents = {};
-      L.lotes.forEach(l => { const k = String(l[7] || 0), e = ents[k] || (ents[k] = {n:0, d:0}); e.n++; if(disponivel(l)) e.d++; });
+      L.lotes.forEach(l => { const k = String(aVistaDe(RASC, L, l) || 0), e = ents[k] || (ents[k] = {n:0, d:0}); e.n++; if(disponivel(l)) e.d++; });
       return `<details class="box" data-lot="${esc(L.id)}"${abertos.has(L.id) ? ' open' : ''}>
         <summary><span><span class="tit">${esc(L.nome)}</span>${pend.length ? `<span class="badge">${pend.length} pendentes</span>` : '<span class="badge ok">completo</span>'}
           <div class="sub">${L.lotes.length} lotes · ${L.lotes.filter(disponivel).length} disponíveis</div></span></summary>
@@ -773,7 +875,17 @@ function desenharAdmin(){
         <div class="sub2">APLICAR POR VALOR DE ENTRADA</div>
         <div class="mini">Vale para todos os lotes deste loteamento com essa entrada. Lotes marcados no mapa têm prioridade.</div>
         ${Object.keys(ents).sort((a,b) => a - b).map(k => `
-          <div class="entr"><div class="ex">${+k ? 'Entrada ' + rs(+k) : 'Sem valor no Cód.'}<small>${ents[k].n} lotes · ${ents[k].d} disponíveis</small></div>
+          <div class="entr"><div class="ex">${+k ? 'Entrada ' + rs(+k) : 'Sem valor no Cód.'}
+              <button class="ico lapis" data-act="av-edit" data-l="${esc(L.id)}" data-k="${k}" aria-label="Editar entrada à vista" title="Editar entrada à vista">✏️</button>
+              <small>${ents[k].n} lotes · ${ents[k].d} disponíveis</small></div>
+            ${editAV && editAV.lid === L.id && editAV.k === k ? `<div class="form avf" data-avl="${esc(L.id)}" data-avk="${k}">
+              <label class="fl">Nova entrada à vista (R$)<input class="inp" inputmode="decimal" data-f="novoav" placeholder="ex.: 16.000"></label>
+              <div class="mini" style="margin-top:6px">Mudar para quais lotes que hoje estão com ${+k ? rs(+k) : 'entrada sem valor'}?</div>
+              <div class="bb">
+                <button class="btn pri" data-act="av-todos">Todos os ${ents[k].n} lotes</button>
+                <button class="btn sec" data-act="av-planta">📍 Escolher na planta</button>
+                <button class="btn sec" data-act="av-cancel">Cancelar</button>
+              </div></div>` : ''}
             <select class="inp" data-sel="entrada" data-l="${esc(L.id)}" data-ent="${k}" aria-label="Condição para entrada ${+k ? rs(+k) : 'sem valor'}">
               <option value="">Consulte com o corretor</option>
               ${r.conds.map(c => `<option value="${esc(c.id)}"${r.porEntrada[k] === c.id ? ' selected' : ''}>${esc(textoCondCurto(c))}</option>`).join('')}
@@ -813,7 +925,7 @@ $('admCorpo').addEventListener('change', e => {
   } else if(s.dataset.sel === 'sit'){
     RASC.situacoes[s.dataset.code] = s.value;
   }
-  marcarAlterado(); desenharAdmin();
+  marcarAlterado(); desenharAdmin(true);
 });
 
 $('admCorpo').addEventListener('click', e => {
@@ -823,31 +935,83 @@ $('admCorpo').addEventListener('click', e => {
     abertos.add(b.dataset.l); desenharAdmin();
     const d = $('admCorpo').querySelector(`details[data-lot="${CSS.escape(b.dataset.l)}"]`);
     if(d) d.scrollIntoView({block:'start', behavior:'smooth'});
-  } else if(act === 'edit'){ editando = b.dataset.c; desenharAdmin(); }
-  else if(act === 'novo'){ editando = 'novo:' + b.dataset.l; desenharAdmin(); }
-  else if(act === 'cancel-edit'){ editando = null; desenharAdmin(); }
+  } else if(act === 'edit'){ editando = b.dataset.c; formEst = null; desenharAdmin(); }
+  else if(act === 'novo'){ editando = 'novo:' + b.dataset.l; formEst = null; desenharAdmin(); }
+  else if(act === 'cancel-edit'){ editando = null; formEst = null; desenharAdmin(); }
+  else if(act === 'add-fase'){ lerForm(b.closest('.form')); formEst.fases.push({n: null, valor: null}); desenharAdmin(); }
+  else if(act === 'rem-fase'){ lerForm(b.closest('.form')); formEst.fases.splice(+b.dataset.i, 1); desenharAdmin(); }
+  else if(act === 'ler-msg'){
+    const f = b.closest('.form'); lerForm(f);
+    const r = lerMensagem(formEst.colar);
+    if(r.sinal == null && !r.fases.length && !r.financ.length){ formLido = 'Não encontrei sinal, parcelas nem financiamento nessa mensagem.'; desenharAdmin(); return; }
+    if(r.sinal != null) formEst.sinal = r.sinal;
+    if(r.fases.length) formEst.fases = r.fases;
+    if(r.financ.length) formEst.financ = financTexto(r.financ);
+    formLido = '✓ Entendi: ' + [r.sinal != null ? 'sinal ' + rs(r.sinal) : '', r.fases.map(x => `${x.n}x de ${x.valor ? rs(x.valor) : '?'}`).join(' + '),
+      r.financ.length ? 'financiamento ' + financTexto(r.financ) : ''].filter(Boolean).join(' · ') + '. Confira abaixo e toque em ' + (f.dataset.c ? 'Salvar' : 'Criar') + '.';
+    desenharAdmin();
+  }
   else if(act === 'salvar-cond'){
     const f = b.closest('.form'), lid = f.dataset.form, cid = f.dataset.c;
-    const v = n => lerNum(f.querySelector(`[data-f="${n}"]`).value);
-    const sinal = v('sinal') || 0, parcelas = Math.round(v('parcelas') || 0), valor = v('valor');
-    if(!(parcelas > 0)){ msgAdm('Informe o número de parcelas da entrada.', 'err'); return; }
-    const r = rLot(lid);
-    if(cid){ Object.assign(r.conds.find(c => c.id === cid), {sinal, parcelas, valor: valor > 0 ? valor : null}); editando = null; marcarAlterado(); desenharAdmin(); }
-    else {
-      const nova = {id: novoId(), sinal, parcelas, valor: valor > 0 ? valor : null};
-      r.conds.push(nova); editando = null; marcarAlterado(); desenharAdmin();
-      msgAdm('Condição criada. Agora aplique por valor de entrada ou toque em "Marcar lotes".');
-    }
+    lerForm(f);
+    const F = formEst, sinal = F.sinal || 0;
+    const fases = F.fases.map(x => ({n: Math.round(x.n || 0), valor: x.valor > 0 ? x.valor : null}));
+    if(fases.some(x => !(x.n > 0))) return msgAdm('Informe o número de parcelas de todas as etapas.', 'err');
+    if(fases.slice(0, -1).some(x => !x.valor)) return msgAdm('Só a última etapa pode ficar sem valor. Preencha o valor das outras.', 'err');
+    const financ = F.financ.trim() ? lerFinanc(F.financ) : [];
+    if(F.financ.trim() && !financ.length) return msgAdm('Não entendi o financiamento. Escreva assim: 36x 50% + 204x 75%', 'err');
+    const r = rLot(lid), dados = {sinal, fases, financ};
+    if(cid) Object.assign(r.conds.find(c => c.id === cid), dados);
+    else r.conds.push(Object.assign({id: novoId()}, dados));
+    editando = null; formEst = null; marcarAlterado(); desenharAdmin();
+    if(!cid) msgAdm('Condição criada. Agora aplique por valor de entrada ou toque em "Marcar lotes".');
   } else if(act === 'excluir'){
     const f = b.closest('.form'), lid = f.dataset.form, cid = f.dataset.c, r = rLot(lid);
     if(!confirm('Excluir esta condição? Os lotes que usam ela voltam para "Consulte com o corretor".')) return;
     r.conds = r.conds.filter(c => c.id !== cid);
     Object.keys(r.porEntrada).forEach(k => { if(r.porEntrada[k] === cid) delete r.porEntrada[k]; });
     Object.keys(r.porLote).forEach(k => { if(r.porLote[k] === cid) delete r.porLote[k]; });
-    editando = null; marcarAlterado(); desenharAdmin();
+    editando = null; formEst = null; marcarAlterado(); desenharAdmin();
   } else if(act === 'marcar'){ entrarModo(b.dataset.l, b.dataset.c); }
+  else if(act === 'av-edit'){ editAV = {lid: b.dataset.l, k: b.dataset.k}; desenharAdmin(true); const i = $('admCorpo').querySelector('[data-f="novoav"]'); if(i) i.focus(); }
+  else if(act === 'av-cancel'){ editAV = null; desenharAdmin(true); }
+  else if(act === 'av-todos' || act === 'av-planta'){
+    const f = b.closest('.avf'), novo = dinheiro(f.querySelector('[data-f="novoav"]').value.replace(/[^\d.,]/g, ''));
+    if(!(novo > 0)) { msgAdm('Digite o novo valor da entrada à vista.', 'err'); return; }
+    const lid = f.dataset.avl, k = f.dataset.avk;
+    editAV = null;
+    if(act === 'av-planta') entrarModoAV(lid, k, novo);
+    else { mudarAVTodos(lid, +k, novo); marcarAlterado(); desenharAdmin(true); msgAdm('Entrada à vista alterada. Toque em Salvar para todos.'); }
+  }
   else if(act === 'trocar-chave'){ localStorage.removeItem('gh_token'); desenharAdmin(); }
 });
+
+/* ----- Editar entrada à vista ----- */
+function limparAv(L){
+  const r = rLot(L.id);
+  L.lotes.forEach(l => { const k = chaveLote(l); if(r.av.porLote[k] === (l[7] || 0)) delete r.av.porLote[k]; });
+  Object.keys(r.av.porEntrada).forEach(k => { if(r.av.porEntrada[k] === +k) delete r.av.porEntrada[k]; });
+}
+function mudarAVTodos(lid, de, novo){
+  const L = LOTEAMENTOS.find(x => x.id === lid), r = rLot(lid);
+  L.lotes.forEach(l => {
+    if((aVistaDe(RASC, L, l) || 0) !== de) return;
+    const k = chaveLote(l);
+    if(r.av.porLote[k] > 0) r.av.porLote[k] = novo; else r.av.porEntrada[String(l[7] || 0)] = novo;
+  });
+  // a condição de entrada parcelada que estava nesse valor acompanha a mudança
+  if(r.porEntrada[String(de)] && !r.porEntrada[String(novo)]){ r.porEntrada[String(novo)] = r.porEntrada[String(de)]; delete r.porEntrada[String(de)]; }
+  limparAv(L);
+}
+function entrarModoAV(lid, k, novo){
+  const L = LOTEAMENTOS.find(x => x.id === lid); if(!L) return;
+  const de = +k, chaves = new Set(L.lotes.filter(l => (aVistaDe(RASC, L, l) || 0) === de).map(chaveLote));
+  MODO = {tipo:'av', L, de, novo, chaves, copia: JSON.stringify(rLot(lid)), antes: Object.assign({}, rLot(lid).av.porLote)};
+  $('admin').classList.remove('open'); closeCard();
+  $('selbar').classList.add('on'); atualizarSelbar();
+  map.fitBounds(L.bounds, {top:20, bottom:150, left:16, right:16});
+  draw();
+}
 
 /* ----- Marcar lotes no mapa ----- */
 function entrarModo(lid, cid){
@@ -859,11 +1023,24 @@ function entrarModo(lid, cid){
   draw();
 }
 function atualizarSelbar(){
+  if(MODO.tipo === 'av'){
+    const n = MODO.L.lotes.filter(l => MODO.chaves.has(chaveLote(l)) && aVistaDe(RASC, MODO.L, l) === MODO.novo).length;
+    $('selT1').textContent = `${MODO.L.nome.replace(/^Loteamento\s+/i,'')}: entrada ${MODO.de ? rs(MODO.de) : 'sem valor'} → ${rs(MODO.novo)}`;
+    $('selT2').textContent = `${n} lotes marcados para mudar (contorno verde). Só aparecem os lotes que estavam com ${MODO.de ? rs(MODO.de) : 'entrada sem valor'}.`;
+    return;
+  }
   const c = rLot(MODO.L.id).conds.find(x => x.id === MODO.condId);
   $('selT1').textContent = `${MODO.L.nome.replace(/^Loteamento\s+/i,'')}: ${c ? textoCondCurto(c) : ''}`;
   $('selT2').textContent = `${usoCond(MODO.L, MODO.condId)} lotes marcados (contorno verde). Toque nos lotes para marcar ou desmarcar.`;
 }
 function alternarMarcacao(L, l){
+  if(MODO.tipo === 'av'){
+    const r = rLot(L.id), k = chaveLote(l);
+    if(!MODO.chaves.has(k)) return;
+    if(aVistaDe(RASC, L, l) === MODO.novo){ if(MODO.antes[k] > 0 && MODO.antes[k] !== MODO.novo) r.av.porLote[k] = MODO.antes[k]; else delete r.av.porLote[k]; }
+    else r.av.porLote[k] = MODO.novo;
+    alterado = true; atualizarSelbar(); camada.draw(); return;
+  }
   const r = rLot(L.id), k = chaveLote(l), ent = String(l[7] || 0), id = MODO.condId;
   if(condIdDe(RASC, L, l) === id){
     if(r.porEntrada[ent] === id) r.porLote[k] = '-'; else delete r.porLote[k];
@@ -874,7 +1051,7 @@ function alternarMarcacao(L, l){
 }
 function sairModo(){ MODO = null; $('selbar').classList.remove('on'); draw(); abrirAdmin(true); }
 $('selCancel').onclick = () => { RASC.lots[MODO.L.id] = JSON.parse(MODO.copia); sairModo(); };
-$('selOk').onclick = () => { sairModo(); salvarAdmin(); };
+$('selOk').onclick = () => { if(MODO && MODO.tipo === 'av') limparAv(MODO.L); sairModo(); salvarAdmin(); };
 
 /* ----- Salvar no GitHub ----- */
 function b64(s){ let bin = ''; new TextEncoder().encode(s).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
@@ -883,7 +1060,8 @@ function pacote(){
   Object.entries(RASC.lots).forEach(([id, r]) => {
     const porLote = Object.fromEntries(Object.entries(r.porLote).filter(([,v]) => v === '-' || r.conds.some(c => c.id === v)));
     const porEntrada = Object.fromEntries(Object.entries(r.porEntrada).filter(([,v]) => r.conds.some(c => c.id === v)));
-    if(r.conds.length || Object.keys(porLote).length) lots[id] = {conds: r.conds, porEntrada, porLote};
+    const av = normAv(r.av);
+    if(r.conds.length || Object.keys(porLote).length || Object.keys(av.porEntrada).length || Object.keys(av.porLote).length) lots[id] = {conds: r.conds, porEntrada, porLote, av};
   });
   return {salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, situacoes: RASC.situacoes, lots, salvoEm: new Date().toISOString()};
 }
