@@ -15,31 +15,22 @@ const CONFIG = {
   salarioMinimo: 1621,              // valor atual do salário mínimo (R$)
   whatsapp: "5547992422059",        // 55 + DDD + número, só dígitos
   googleMapsKey: "AIzaSyBLNed6B7eZyrQxnIC9WeXGKDnTbbTIyZQ", // chave da API do Google Maps
+  repo: "irineuimoveis/loteamentos",   // onde ficam data.json e config.json
+  // Situação de cada lote no forinvest (número do status → como aparece no mapa)
+  situacoes: { 0: "disponivel", 2: "reservado", 3: "indisponivel", 4: "vendido" },
   // Arquivo com os lotes, atualizado sozinho pelo robô
   dados: "https://raw.githubusercontent.com/irineuimoveis/loteamentos/main/data.json",
 
-  // ENTRADA de cada loteamento (use o "id" do loteamento, igual ao loteamentos.json)
-  // "todos" vale para qualquer loteamento que não tiver o seu próprio bloco
+  // ENTRADA À VISTA: vem sozinha do "Cod." de cada terreno no forinvest (30.0 = R$ 30.000)
+  // ENTRADA FACILITADA: sinal + parcelas abaixo. Deixe valorParcela: null para calcular
+  // sozinho: (entrada à vista - sinal) ÷ parcelas
   entrada: {
     todos: {
-      padrao: { aVista: 30000, sinal: 5000, parcelas: 10, valorParcela: 2500 },
+      padrao: { sinal: 5000, parcelas: 10, valorParcela: null },
       porPlano: {}
     },
-    pereque: {
-      // Valor padrão para todos os lotes deste loteamento
-      padrao: {
-        aVista: 30000,              // entrada à vista (R$)
-        sinal: 5000,                // sinal da entrada parcelada (R$)
-        parcelas: 10,               // quantidade de parcelas da entrada
-        valorParcela: 2500          // valor de cada parcela (deixe null para calcular sozinho)
-      },
-      // Opcional: valor diferente por plano. Apague as // da frente para usar.
-      porPlano: {
-        // "240 X 1 1/4": { aVista: 35000, sinal: 5000, parcelas: 10, valorParcela: 3000 },
-        // "250 X 1":     { aVista: 30000, sinal: 5000, parcelas: 10, valorParcela: 2500 },
-        // "240 X 1":     { aVista: 30000, sinal: 5000, parcelas: 10, valorParcela: 2500 },
-      }
-    }
+    // Para um loteamento com regra diferente, copie o bloco "todos" com o id dele. Exemplo:
+    // "thomaselli": { padrao: { sinal: 1000, parcelas: 12, valorParcela: null }, porPlano: {} },
   }
 };
 /* ===================== FIM DA CONFIGURAÇÃO ===================== */
@@ -91,9 +82,8 @@ body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 .head .q{color:var(--muted);font-size:.95rem;margin-top:3px}
 .close{margin-left:auto;background:var(--sea-soft);border:0;color:var(--ink);width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;flex:none}
 .pill{display:inline-block;font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:999px;margin-top:8px}
-.pill.ok{background:#e1f4e8;color:#126a39}
-.pill.no{background:#fbe4e4;color:#a12b2b}
-@media (prefers-color-scheme: dark){.pill.ok{background:#173d29;color:#8fdcae}.pill.no{background:#4a1d1d;color:#f3a6a6}}
+.pill{color:#1b1b1b}
+.pill i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 .area{font-size:1rem;margin-top:10px}
 .area b{font-weight:800}
 .block{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
@@ -113,6 +103,47 @@ body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 .placa svg{display:block}
 .placa:hover,.placa:focus-visible{filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)) brightness(1.06);outline:none}
 @media (prefers-reduced-motion: reduce){.sheet{transition:none}}
+.legend{flex-wrap:wrap;max-width:calc(100vw - 90px);gap:6px 12px;cursor:default}
+/* ===== Painel secreto ===== */
+.ovl{position:fixed;inset:0;z-index:3000;display:none}
+.ovl.open{display:flex}
+#senhaBox{background:rgba(5,15,20,.55);align-items:center;justify-content:center;padding:20px}
+.dlg{background:var(--paper);color:var(--ink);border-radius:18px;padding:20px;width:min(340px,100%);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.dlg h3{margin:0 0 4px;font-size:1.15rem}
+.dlg p{margin:0 0 12px;color:var(--muted);font-size:.88rem}
+.dlg .erro{color:#c0392b;font-size:.85rem;min-height:1.2em;margin-top:6px}
+.inp{font:inherit;font-size:16px;width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--sea-soft);color:var(--ink)}
+.inp:focus{outline:2px solid var(--sea);outline-offset:1px}
+.btn.pri{background:var(--sea);color:#fff}
+.btn.sec{background:var(--sea-soft);color:var(--ink);font-weight:600}
+.dlg .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+#admin{background:var(--paper);color:var(--ink);flex-direction:column}
+.adm-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;border-bottom:1px solid var(--line)}
+.adm-head h2{margin:0;font-size:1.2rem;font-weight:800}
+.adm-body{flex:1;overflow:auto;padding:6px 16px 28px;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.adm-foot{border-top:1px solid var(--line);padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;gap:10px;align-items:center;background:var(--paper)}
+.adm-foot .btn{flex:none;padding:13px 18px}
+.adm-msg{font-size:.85rem;color:var(--muted);flex:1;line-height:1.3}
+.adm-msg.ok{color:#168a48}.adm-msg.err{color:#c0392b}
+.sec{margin-top:18px}
+.sec>h3{font-size:.8rem;letter-spacing:.05em;color:var(--sea);margin:0 0 4px;font-weight:800}
+.sec>.dica{font-size:.82rem;color:var(--muted);margin:0 0 10px;line-height:1.35}
+.box{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.box .tit{font-weight:800;font-size:.98rem;line-height:1.25}
+.box .sub{font-size:.8rem;color:var(--muted);margin-top:3px;line-height:1.35}
+.flds{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin-top:10px}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:.74rem;color:var(--muted);font-weight:600}
+.fl .inp{padding:9px 10px}
+.prev{font-size:.84rem;margin-top:10px;background:var(--sea-soft);border-radius:10px;padding:8px 10px;line-height:1.45}
+.prev b{font-weight:800}
+details.box summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:center}
+details.box summary::-webkit-details-marker{display:none}
+details.box summary::after{content:"▾";color:var(--muted)}
+details.box[open] summary::after{content:"▴"}
+.filtro{display:flex;gap:8px;margin:8px 0}
+.filtro select{flex:1}
+.mini{font-size:.78rem;color:var(--muted)}
+.lnk{color:var(--sea);font-weight:700;background:none;border:0;padding:0;font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -130,12 +161,36 @@ body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   </div>
 </div></div>
 
-<div class="legend"><span><i style="background:var(--free)"></i>Disponível</span><span><i style="background:var(--taken)"></i>Indisponível</span></div>
+<div class="legend" id="legenda" role="note" aria-label="Legenda"></div>
+
+<div class="ovl" id="senhaBox" role="dialog" aria-modal="true" aria-labelledby="senhaTit">
+  <div class="dlg">
+    <h3 id="senhaTit">Área do corretor</h3>
+    <p>Digite a senha para abrir as configurações.</p>
+    <input class="inp" id="senhaInp" type="password" inputmode="numeric" autocomplete="off" aria-label="Senha">
+    <div class="erro" id="senhaErro" aria-live="polite"></div>
+    <div class="btns"><button class="btn sec" id="senhaCancel">Cancelar</button><button class="btn pri" id="senhaOk">Entrar</button></div>
+  </div>
+</div>
+
+<div class="ovl" id="admin" role="dialog" aria-modal="true" aria-labelledby="admTit">
+  <div class="adm-head"><h2 id="admTit">Configurações</h2><button class="close" id="admFechar" aria-label="Fechar">✕</button></div>
+  <div class="adm-body" id="admCorpo"></div>
+  <div class="adm-foot"><div class="adm-msg" id="admMsg" aria-live="polite"></div><button class="btn pri" id="admSalvar">Salvar para todos</button></div>
+</div>
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="loteTitulo"><div class="card" id="card"></div></div>
 
 <script>
 let LOTEAMENTOS = [], ATUALIZADO = "";
+const SIT = {
+  disponivel:   {nome:'Disponível',   cor:'#9aa3a7', fundo:'#e7ebec'},
+  reservado:    {nome:'Reservado',    cor:'#f2c230', fundo:'#fdf1c7'},
+  indisponivel: {nome:'Indisponível', cor:'#f08a24', fundo:'#fde3cb'},
+  vendido:      {nome:'Vendido',      cor:'#d23f3f', fundo:'#fbe0e0'}
+};
+const situacao = st => (CONFIG.situacoes||{})[st] || (st === 0 ? 'disponivel' : 'indisponivel');
+document.getElementById('legenda').innerHTML = Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
 
 const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
 const FRAC = {'1/4':'¼','1/2':'½','3/4':'¾'};
@@ -150,27 +205,54 @@ function parsePlano(k){
 }
 const rs = v => 'R$' + v.toLocaleString('pt-BR',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
 const salMsg = f => f.val < 1 ? `${Math.round(f.val*100)}% do Salário` : `${f.txt} Salário`;
-function entradaDe(lot, plano){
-  const E = CONFIG.entrada||{}, e = E[lot.id] || E.todos; if(!e) return null;
-  const c = Object.assign({}, e.padrao||{}, (e.porPlano||{})[plano]||{});
-  if(c.aVista==null) return null;
-  if(c.valorParcela==null && c.parcelas) c.valorParcela = Math.round(((c.aVista-(c.sinal||0))/c.parcelas)*100)/100;
-  return c;
+/* Regras da entrada facilitada. Ordem: geral → loteamento → grupo (o mais específico vence).
+   Campo vazio = herda do nível de cima. Vêm do config.json salvo pelo painel. */
+const numOk = v => typeof v === 'number' && isFinite(v);
+const limpo = o => { const r = {}; Object.entries(o||{}).forEach(([k,v]) => { if(numOk(v)) r[k] = v; }); return r; };
+let REGRAS = (() => {
+  const E = CONFIG.entrada || {}, r = {geral: limpo((E.todos||{}).padrao), lot:{}, grupos:{}};
+  Object.entries(E).forEach(([id, v]) => { if(id !== 'todos' && v && v.padrao) r.lot[id] = limpo(v.padrao); });
+  return r;
+})();
+const grupoKey = (plano, ent) => (plano || 'sem plano') + '|' + (ent || 0);
+function regraEfetiva(R, L, plano, ent){
+  return Object.assign({}, limpo(R.geral), limpo((R.lot||{})[L.id]), limpo((R.grupos||{})[grupoKey(plano, ent)]));
 }
+function calcEntrada(R, L, plano, ent){
+  const c = regraEfetiva(R, L, plano, ent);
+  const aVista = ent || c.aVista;
+  if(!aVista) return null;
+  const out = {aVista, sinal: c.sinal || 0, parcelas: c.parcelas || 0, valorParcela: c.valorParcela};
+  if(out.parcelas && !numOk(out.valorParcela)) out.valorParcela = Math.round((aVista - out.sinal) / out.parcelas);
+  if(!out.parcelas) out.valorParcela = null;
+  return out;
+}
+function entradaDe(L, plano, l){ return calcEntrada(REGRAS, L, plano, l[7]); }
 
 const params = new URLSearchParams(location.search);
 let map, LOT = null, selected = null;
 const fL = document.getElementById('fLot'), fQ = document.getElementById('fQuadra');
 const ZOOM_LOTES = 15;
 const dadosPromise = fetch(CONFIG.dados + '?t=' + Date.now(), {cache:'no-store'}).then(r => r.json());
+const configPromise = fetch(`https://raw.githubusercontent.com/${CONFIG.repo}/main/config.json?t=${Date.now()}`, {cache:'no-store'})
+  .then(r => r.ok ? r.json() : null).catch(() => null);
+function aplicarConfig(c){
+  if(!c) return;
+  if(numOk(+c.salarioMinimo) && +c.salarioMinimo > 0) CONFIG.salarioMinimo = +c.salarioMinimo;
+  if(c.whatsapp && String(c.whatsapp).replace(/\D/g,'').length >= 12) CONFIG.whatsapp = String(c.whatsapp).replace(/\D/g,'');
+  if(c.regras) REGRAS = {geral: limpo(c.regras.geral), lot: Object.fromEntries(Object.entries(c.regras.lot||{}).map(([k,v]) => [k, limpo(v)])),
+    grupos: Object.fromEntries(Object.entries(c.regras.grupos||{}).map(([k,v]) => [k, limpo(v)]))};
+}
 
 function limitesDe(L){
-  if(L.planta){ const [[s,w],[n,e]] = L.planta.limites; return new google.maps.LatLngBounds({lat:s,lng:w},{lat:n,lng:e}); }
-  const b = new google.maps.LatLngBounds(); L.lotes.forEach(l => b.extend({lat:l[4], lng:l[5]})); return b;
+  const b = new google.maps.LatLngBounds();
+  if(L.planta){ const [[s,w],[n,e]] = L.planta.limites; b.extend({lat:s,lng:w}); b.extend({lat:n,lng:e}); }
+  L.lotes.forEach(l => b.extend({lat:l[4], lng:l[5]}));
+  return b;
 }
 
 async function initMap(){
-  try { const d = await dadosPromise; LOTEAMENTOS = d.loteamentos || d; ATUALIZADO = d.atualizado || ''; }
+  try { const d = await dadosPromise; LOTEAMENTOS = d.loteamentos || d; ATUALIZADO = d.atualizado || ''; aplicarConfig(await configPromise); }
   catch(e){ document.getElementById('nome').textContent = 'Não foi possível carregar os lotes'; document.getElementById('cidade').textContent = 'Recarregue a página em alguns instantes.'; return; }
   map = new google.maps.Map(document.getElementById('map'), {
     center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:8, mapTypeId:'hybrid', tilt:0,
@@ -318,7 +400,7 @@ function criarCamada(){
       const r = Math.max(2, 4 / mpp), borda = z >= 18 ? 1.5 : z >= 17 ? .8 : 0;
       const only = document.getElementById('fDisp').checked, q = LOT ? fQ.value : '';
       const lista = [];
-      const cores = {livre:[], vendido:[]};
+      const cores = {disponivel:[], reservado:[], indisponivel:[], vendido:[]};
       LOTEAMENTOS.forEach(L => {
         if(!b.intersects(L.bounds)) return;
         if(!L.ll) L.ll = L.lotes.map(l => new google.maps.LatLng(l[4], l[5]));
@@ -328,11 +410,11 @@ function criarCamada(){
           const p = pr.fromLatLngToDivPixel(L.ll[i]), x = p.x - x0, y = p.y - y0;
           if(x < -r || y < -r || x > CW + r || y > CH + r) return;
           lista.push({L, l, x:p.x, y:p.y});
-          (l[3] === 0 ? cores.livre : cores.vendido).push([x, y]);
+          cores[situacao(l[3])].push([x, y]);
         });
       });
       visiveis = lista;
-      [['vendido','#d23f3f'],['livre','#9aa3a7']].forEach(([k, cor]) => {
+      ['vendido','indisponivel','reservado','disponivel'].map(k => [k, SIT[k].cor]).forEach(([k, cor]) => {
         ctx.beginPath();
         cores[k].forEach(([x,y]) => { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832); });
         ctx.fillStyle = cor; ctx.fill();
@@ -385,7 +467,7 @@ function open(LT, l){
   const [quadra, num, area, st, lat, lng, pi] = l;
   const livre = st === 0;
   const plano = pi != null ? LT.planos[pi] : null, p = plano ? parsePlano(plano) : null;
-  const ent = entradaDe(LT, plano);
+  const ent = entradaDe(LT, plano, l);
   const sm = CONFIG.salarioMinimo;
   const gm = `https://www.google.com/maps?q=${lat},${lng}`;
   const linhas = [`Me interessei pelo Lote ${num} quadra ${quadra} do ${LT.nome}`];
@@ -408,7 +490,7 @@ function open(LT, l){
   let h = `<div class="grip"></div>
   <div class="head"><div><h2 id="loteTitulo">Lote ${num}</h2><div class="q">Quadra ${quadra}</div></div>
   <button class="close" aria-label="Fechar" onclick="closeCard()">✕</button></div>
-  <span class="pill ${livre?'ok':'no'}">${livre?'Disponível':'Indisponível'}</span>
+  <span class="pill" style="background:${SIT[situacao(st)].fundo}"><i style="background:${SIT[situacao(st)].cor}"></i>${SIT[situacao(st)].nome}</span>
   <div class="area"><b>${area.toLocaleString('pt-BR')} m²</b></div>`;
   if(livre){
     if(ent){
@@ -432,7 +514,7 @@ function open(LT, l){
       </div>
       <div class="note">Parcela corrigida conforme o salário mínimo vigente. Valores sujeitos a confirmação com o corretor.${ATUALIZADO ? ' Disponibilidade atualizada em ' + ATUALIZADO + '.' : ''}</div>`;
   } else {
-    h += `<div class="note" style="font-size:.9rem">Este lote não está mais disponível. Toque numa bolinha cinza para ver as opções livres.</div>`;
+    h += `<div class="note" style="font-size:.9rem">${situacao(st) === 'reservado' ? 'Este lote está reservado no momento.' : 'Este lote não está disponível.'} Toque numa bolinha cinza para ver as opções livres.</div>`;
   }
   document.getElementById('card').innerHTML = h;
   document.getElementById('sheet').classList.add('open');
@@ -450,6 +532,190 @@ fQ.onchange = () => {
 document.getElementById('fDisp').onchange = draw;
 document.getElementById('fPlanta').onchange = draw;
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCard(); });
+/* ===================== PAINEL SECRETO =====================
+   5 toques na legenda → senha → configurações salvas no GitHub (config.json) */
+const SENHA_HASH = '7be3698d8929000ae09da31cf13b704315d383ff34567e2ad7041d9c8c8a7dc3';
+let toques = [], RASC = null;
+const $ = id => document.getElementById(id);
+const fmtN = v => numOk(v) ? v.toLocaleString('pt-BR') : '';
+const lerNum = v => { const t = String(v).trim(); if(!t) return null; const n = Number(t.replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'')); return isFinite(n) ? n : null; };
+
+$('legenda').addEventListener('click', () => {
+  const t = Date.now(); toques = toques.filter(x => t - x < 3000); toques.push(t);
+  if(toques.length >= 5){ toques = []; pedirSenha(); }
+});
+
+async function sha256(t){
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
+}
+function pedirSenha(){
+  if(sessionStorage.getItem('adm') === '1') return abrirAdmin();
+  $('senhaInp').value = ''; $('senhaErro').textContent = '';
+  $('senhaBox').classList.add('open'); setTimeout(() => $('senhaInp').focus(), 50);
+}
+async function conferirSenha(){
+  let ok = false;
+  try { ok = (await sha256($('senhaInp').value.trim())) === SENHA_HASH; } catch(e) { ok = false; }
+  if(!ok){ $('senhaErro').textContent = 'Senha incorreta.'; $('senhaInp').select(); return; }
+  sessionStorage.setItem('adm','1'); $('senhaBox').classList.remove('open'); abrirAdmin();
+}
+$('senhaOk').onclick = conferirSenha;
+$('senhaCancel').onclick = () => $('senhaBox').classList.remove('open');
+$('senhaInp').addEventListener('keydown', e => { if(e.key === 'Enter') conferirSenha(); });
+
+/* Junta todos os terrenos com a mesma condição (mesmo plano + mesma entrada do Cod.) */
+function montarGrupos(){
+  const g = {};
+  LOTEAMENTOS.forEach(L => L.lotes.forEach(l => {
+    const plano = l[6] != null ? L.planos[l[6]] : null, ent = l[7] || 0, k = grupoKey(plano, ent);
+    const x = g[k] || (g[k] = {k, plano, ent, total:0, livres:0, lots:{}});
+    x.total++; if(l[3] === 0) x.livres++;
+    x.lots[L.id] = (x.lots[L.id] || 0) + 1;
+  }));
+  return Object.values(g).sort((a,b) => b.total - a.total);
+}
+const textoPlano = plano => {
+  const p = plano && parsePlano(plano);
+  return p ? p.fases.map((f,i) => `${i?'+ ':''}${f.n}x de ${f.val < 1 ? Math.round(f.val*100)+'% do' : f.txt} salário`).join(' ') : 'Sem plano no forinvest';
+};
+const resumoEntrada = e => !e ? 'sem entrada definida' : e.parcelas ? `${rs(e.sinal)} + ${e.parcelas}x de ${rs(e.valorParcela)}` : 'sem entrada parcelada';
+const nomeLot = id => (LOTEAMENTOS.find(L => L.id === id) || {nome:id}).nome.replace(/^Loteamento\s+/i,'');
+
+function campo(escopo, id, chave, rotulo, valor, herda){
+  return `<label class="fl">${rotulo}<input class="inp" inputmode="decimal" autocomplete="off"
+    data-e="${escopo}" data-id="${esc(id)}" data-c="${chave}" value="${fmtN(valor)}" placeholder="${herda}"></label>`;
+}
+function previaGrupo(g){
+  return Object.keys(g.lots).map(id => {
+    const L = LOTEAMENTOS.find(x => x.id === id);
+    return `${esc(nomeLot(id))}: <b>${resumoEntrada(calcEntrada(RASC.regras, L, g.plano, g.ent))}</b>`;
+  }).join('<br>');
+}
+function previaLot(L){
+  const r = Object.assign({}, limpo(RASC.regras.geral), limpo(RASC.regras.lot[L.id]));
+  return r.parcelas ? `Sinal ${rs(r.sinal || 0)} + ${r.parcelas}x (a parcela é calculada pela entrada de cada lote)` : 'Sem entrada parcelada';
+}
+
+function abrirAdmin(){
+  RASC = JSON.parse(JSON.stringify({salarioMinimo: CONFIG.salarioMinimo, whatsapp: CONFIG.whatsapp, regras: REGRAS}));
+  RASC.regras.lot = RASC.regras.lot || {}; RASC.regras.grupos = RASC.regras.grupos || {};
+  desenharAdmin();
+  $('admMsg').className = 'adm-msg'; $('admMsg').textContent = 'Nada salvo ainda.';
+  $('admin').classList.add('open');
+}
+function desenharAdmin(){
+  const G = RASC.regras.geral, grupos = montarGrupos(), temChave = !!localStorage.getItem('gh_token');
+  const filtro = $('admFiltro') ? $('admFiltro').value : '';
+  let h = `
+  <div class="sec"><h3>GERAL</h3>
+    <div class="flds">
+      <label class="fl">Salário mínimo (R$)<input class="inp" inputmode="decimal" data-e="cfg" data-c="salarioMinimo" value="${fmtN(RASC.salarioMinimo)}"></label>
+      <label class="fl">Seu WhatsApp (55 + DDD + número)<input class="inp" inputmode="tel" data-e="cfg" data-c="whatsapp" value="${esc(RASC.whatsapp)}"></label>
+    </div></div>
+
+  <div class="sec"><h3>ENTRADA FACILITADA — REGRA GERAL</h3>
+    <p class="dica">Vale para todos os terrenos. A <b>entrada à vista</b> vem sozinha do <b>Cod.</b> de cada terreno no forinvest. A parcela é calculada assim: (entrada − sinal) ÷ parcelas.</p>
+    <div class="box"><div class="flds">
+      ${campo('geral','', 'sinal', 'Sinal (R$)', G.sinal, 'ex.: 5.000')}
+      ${campo('geral','', 'parcelas', 'Nº de parcelas', G.parcelas, 'ex.: 10')}
+    </div></div></div>
+
+  <div class="sec"><h3>POR LOTEAMENTO</h3>
+    <p class="dica">Só preencha se um loteamento tiver regra diferente da geral. Vazio = usa a geral.</p>
+    ${LOTEAMENTOS.map(L => { const R = RASC.regras.lot[L.id] || {}, proprio = numOk(R.sinal) || numOk(R.parcelas);
+      return `<details class="box"><summary><span><span class="tit">${esc(L.nome)}</span><div class="sub">${proprio ? 'Regra própria' : 'Usa a regra geral'} · ${L.lotes.length} terrenos</div></span></summary>
+        <div class="flds">${campo('lot', L.id, 'sinal', 'Sinal (R$)', R.sinal, 'geral: ' + (fmtN(G.sinal) || '—'))}
+        ${campo('lot', L.id, 'parcelas', 'Nº de parcelas', R.parcelas, 'geral: ' + (fmtN(G.parcelas) || '—'))}</div>
+        <div class="prev" data-prev="lot" data-id="${esc(L.id)}">${previaLot(L)}</div></details>`; }).join('')}
+  </div>
+
+  <div class="sec"><h3>GRUPOS DE CONDIÇÕES PARECIDAS</h3>
+    <p class="dica">Terrenos com a <b>mesma entrada</b> e o <b>mesmo parcelamento</b> ficam juntos. Editou um grupo, muda em todos os terrenos dele. Vazio = usa a regra do loteamento ou a geral.</p>
+    <div class="filtro"><select class="inp" id="admFiltro" aria-label="Filtrar por loteamento">
+      <option value="">Todos os loteamentos (${grupos.length} grupos)</option>
+      ${LOTEAMENTOS.map(L => `<option value="${esc(L.id)}"${filtro === L.id ? ' selected' : ''}>${esc(L.nome)}</option>`).join('')}
+    </select></div>
+    ${grupos.filter(g => !filtro || g.lots[filtro]).map(g => { const R = RASC.regras.grupos[g.k] || {};
+      return `<div class="box">
+        <div class="tit">Entrada ${g.ent ? rs(g.ent) : 'sem Cod.'} · ${esc(textoPlano(g.plano))}</div>
+        <div class="sub">${g.total} terrenos (${g.livres} disponíveis) · ${Object.entries(g.lots).map(([id,n]) => `${esc(nomeLot(id))} (${n})`).join(', ')}</div>
+        <div class="flds">
+          ${g.ent ? '' : campo('grupo', g.k, 'aVista', 'Entrada à vista (R$)', R.aVista, 'sem Cod.')}
+          ${campo('grupo', g.k, 'sinal', 'Sinal (R$)', R.sinal, 'herda')}
+          ${campo('grupo', g.k, 'parcelas', 'Nº de parcelas', R.parcelas, 'herda')}
+          ${campo('grupo', g.k, 'valorParcela', 'Valor da parcela', R.valorParcela, 'automático')}
+        </div>
+        <div class="prev" data-prev="grupo" data-id="${esc(g.k)}">${previaGrupo(g)}</div></div>`; }).join('')}
+  </div>
+
+  <div class="sec"><h3>CHAVE DE ACESSO DO GITHUB</h3>
+    <p class="dica">É ela que permite salvar daqui. Fica guardada só neste aparelho.</p>
+    <div class="box">${temChave
+      ? `<div class="tit">✓ Chave salva neste aparelho</div><div class="sub"><button class="lnk" id="admTrocar">Trocar ou remover a chave</button></div>`
+      : `<label class="fl">Cole a chave (começa com github_pat_)<input class="inp" id="admToken" autocomplete="off" spellcheck="false"></label>`}
+    </div></div>`;
+  $('admCorpo').innerHTML = h;
+  $('admFiltro').onchange = desenharAdmin;
+  if($('admTrocar')) $('admTrocar').onclick = () => { localStorage.removeItem('gh_token'); desenharAdmin(); };
+}
+
+$('admCorpo').addEventListener('input', e => {
+  const el = e.target; if(!el.dataset || !el.dataset.e) return;
+  const {e: esc0, id, c} = el.dataset, v = el.value;
+  if(esc0 === 'cfg'){ RASC[c] = c === 'whatsapp' ? v.replace(/\D/g,'') : lerNum(v); return; }
+  const alvo = esc0 === 'geral' ? RASC.regras.geral
+    : esc0 === 'lot' ? (RASC.regras.lot[id] = RASC.regras.lot[id] || {})
+    : (RASC.regras.grupos[id] = RASC.regras.grupos[id] || {});
+  const n = lerNum(v);
+  if(n == null) delete alvo[c]; else alvo[c] = c === 'parcelas' ? Math.round(n) : n;
+  // atualiza as prévias sem redesenhar (o cursor continua no campo)
+  const grupos = montarGrupos();
+  document.querySelectorAll('#admCorpo [data-prev="grupo"]').forEach(p => { const g = grupos.find(x => x.k === p.dataset.id); if(g) p.innerHTML = previaGrupo(g); });
+  document.querySelectorAll('#admCorpo [data-prev="lot"]').forEach(p => { const L = LOTEAMENTOS.find(x => x.id === p.dataset.id); if(L) p.innerHTML = previaLot(L); });
+  $('admMsg').className = 'adm-msg'; $('admMsg').textContent = 'Alterações não salvas.';
+});
+
+function limparRegras(r){
+  const tira = o => Object.fromEntries(Object.entries(o||{}).map(([k,v]) => [k, limpo(v)]).filter(([,v]) => Object.keys(v).length));
+  return {geral: limpo(r.geral), lot: tira(r.lot), grupos: tira(r.grupos)};
+}
+function b64(s){ let bin = ''; new TextEncoder().encode(s).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
+
+async function salvarAdmin(){
+  const msg = (t, cls) => { $('admMsg').className = 'adm-msg ' + (cls||''); $('admMsg').textContent = t; };
+  if(!(RASC.salarioMinimo > 0)) return msg('Confira o valor do salário mínimo.', 'err');
+  if(String(RASC.whatsapp).length < 12) return msg('Confira o WhatsApp: 55 + DDD + número.', 'err');
+  const token = localStorage.getItem('gh_token') || ($('admToken') ? $('admToken').value.trim() : '');
+  if(!token) return msg('Cole a chave do GitHub no fim da página para poder salvar.', 'err');
+  const conteudo = {salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, regras: limparRegras(RASC.regras), salvoEm: new Date().toISOString()};
+  const url = `https://api.github.com/repos/${CONFIG.repo}/contents/config.json`;
+  const head = {Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json'};
+  $('admSalvar').disabled = true; msg('Salvando…');
+  try {
+    const g = await fetch(url + '?ref=main&t=' + Date.now(), {headers: head, cache: 'no-store'});
+    if(g.status === 401 || g.status === 403){ localStorage.removeItem('gh_token'); desenharAdmin(); throw new Error('Chave do GitHub inválida ou sem permissão. Cole uma chave nova.'); }
+    const sha = g.ok ? (await g.json()).sha : undefined;
+    const body = {message: 'Condições atualizadas pelo painel', content: b64(JSON.stringify(conteudo, null, 1)), branch: 'main'};
+    if(sha) body.sha = sha;
+    const r = await fetch(url, {method: 'PUT', headers: Object.assign({'Content-Type': 'application/json'}, head), body: JSON.stringify(body)});
+    if(r.status === 401 || r.status === 403){ localStorage.removeItem('gh_token'); desenharAdmin(); throw new Error('A chave não tem permissão de escrita neste repositório.'); }
+    if(!r.ok) throw new Error('O GitHub recusou (erro ' + r.status + '). Tente de novo em instantes.');
+    localStorage.setItem('gh_token', token);
+    aplicarConfig(conteudo);
+    if(selected) open(selected.L, selected.l);
+    desenharAdmin();
+    msg('✓ Salvo! Para você já vale agora; para os clientes, em até 5 minutos.', 'ok');
+  } catch(e){
+    msg(e.message && !/fetch/i.test(e.message) ? e.message : 'Sem conexão com o GitHub. Verifique a internet e tente de novo.', 'err');
+  } finally { $('admSalvar').disabled = false; }
+}
+$('admSalvar').onclick = salvarAdmin;
+$('admFechar').onclick = () => {
+  if(/não salvas/.test($('admMsg').textContent) && !confirm('Fechar sem salvar as alterações?')) return;
+  $('admin').classList.remove('open');
+};
+
 (function(){ const s = document.createElement('script');
   s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(CONFIG.googleMapsKey) + '&callback=initMap&loading=async';
   s.async = true; document.head.appendChild(s); })();
