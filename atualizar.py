@@ -72,7 +72,8 @@ def montar(offer, item):
             "planta": planta, "planos": planos, "lotes": lotes}
 
 def main():
-    lista = json.load(open("loteamentos.json", encoding="utf-8"))
+    texto = open("loteamentos.json", encoding="utf-8").read()
+    lista = json.loads(re.sub(r",\s*([\]}])", r"\1", texto))  # ignora vírgula sobrando no fim
     resp = chamar(BASE + "Users/authenticate",
                   {"email": os.environ["FORINVEST_EMAIL"], "password": os.environ["FORINVEST_SENHA"], "rememberMe": ""})
     token = achar_token(resp)
