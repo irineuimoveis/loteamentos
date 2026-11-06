@@ -1,7 +1,7 @@
 name: Atualizar lotes
 on:
   schedule:
-    - cron: "0 * * * *"   # de hora em hora
+        - cron: "*/5 * * * *"   # a cada 5 minutos
   workflow_dispatch:       # botão "Run workflow" para rodar na hora
 permissions:
   contents: write
