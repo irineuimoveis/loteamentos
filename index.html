@@ -281,7 +281,10 @@ function escolher(id){
   LOT = LOTEAMENTOS.find(L => L.id === id) || null;
   fL.value = LOT ? LOT.id : '';
   closeCard(); cabecalho();
-  if(LOT) map.fitBounds(LOT.bounds, 10);
+  if(LOT){
+    map.fitBounds(LOT.bounds, 10);
+    google.maps.event.addListenerOnce(map, 'idle', () => { if(map.getZoom() < ZOOM_LOTES) map.setZoom(ZOOM_LOTES); });
+  }
   else { const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds)); map.fitBounds(b, 60); }
 }
 
@@ -289,6 +292,10 @@ function draw(){
   if(!map) return;
   circles.forEach(c => c.setMap(null)); circles = [];
   const z = map.getZoom(), vista = map.getBounds(), perto = z >= ZOOM_LOTES;
+  const centro = map.getCenter();
+  const foco = perto ? (LOTEAMENTOS.find(L => L.bounds.contains(centro)) || LOTEAMENTOS.find(L => vista && vista.intersects(L.bounds)) || null) : null;
+  if(foco !== LOT){ LOT = foco; fL.value = LOT ? LOT.id : ''; if(!LOT && selected) closeCard(); cabecalho(); }
+  document.querySelector('.top').style.display = LOT ? '' : 'none';
   const only = document.getElementById('fDisp').checked, mostrarPlanta = document.getElementById('fPlanta').checked;
   const q = LOT ? fQ.value : '';
   LOTEAMENTOS.forEach(L => {
