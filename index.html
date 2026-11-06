@@ -249,13 +249,14 @@ const SIT = {
   indisponivel:{nome:'Indisponível',         cor:'#f08a24', fundo:'#fde3cb'},
   vendido:     {nome:'Vendido',              cor:'#d23f3f', fundo:'#fbe0e0'}
 };
-const SIT_PADRAO = {0:'disponivel', 1:'reservado', 2:'reservado', 3:'vendido', 4:'definitivo', 5:'indisponivel'};
+// Tabela oficial do forinvest (conferida no card de cada situação)
+const SIT_PADRAO = {0:'disponivel', 1:'vendido', 2:'reservado', 3:'indisponivel', 4:'definitivo'};
 
 /* ---------- Regras salvas pela Área do corretor (config.json) ----------
    lots[id] = { conds:[{id,sinal,parcelas,valor}], porEntrada:{ "15000": condId }, porLote:{ "A|12": condId | "-" } } */
 let REGRAS = {situacoes:{}, lots:{}};
 let LOTEAMENTOS = [], ATUALIZADO = '';
-const situacao = st => (REGRAS.situacoes && REGRAS.situacoes[st]) || SIT_PADRAO[st] || 'indisponivel';
+const situacao = st => SIT_PADRAO[st] || 'indisponivel';
 const chaveLote = l => l[0] + '|' + l[1];
 
 function normalizaRegras(r){
@@ -780,14 +781,6 @@ function desenharAdmin(){
         ${pend.length ? `<div class="pend">${listaPendentes(pend)}</div>` : '<div class="mini">Todos os lotes disponíveis têm entrada parcelada.</div>'}
       </details>`; }).join('')}
   </div>
-
-  <div class="sec"><h3>CORES DAS SITUAÇÕES</h3>
-    <p class="dica">Confira cada exemplo no card do forinvest e escolha a situação que aparece lá.</p>
-    <div class="box">${Object.keys(codigos).sort((a,b) => a - b).map(k => `
-      <div class="sitrow"><div class="ex">Código ${esc(k)} · ${codigos[k].n} lotes<small>ex.: ${esc(codigos[k].ex)}</small></div>
-        <select class="inp" data-sel="sit" data-code="${esc(k)}" aria-label="Situação do código ${esc(k)}">
-          ${Object.entries(SIT).map(([id, s]) => `<option value="${id}"${(RASC.situacoes[k] || SIT_PADRAO[k] || 'indisponivel') === id ? ' selected' : ''}>${s.nome}</option>`).join('')}
-        </select></div>`).join('')}</div></div>
 
   <div class="sec"><h3>CHAVE DE ACESSO DO GITHUB</h3>
     <p class="dica">É ela que permite salvar daqui. Fica guardada só neste aparelho.</p>
