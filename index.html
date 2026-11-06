@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Mapa dos lotes | Irineu Imóveis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
@@ -63,7 +63,9 @@ const CONFIG = {
   --sea:#6cc3d4; --sea-soft:#1d3840; --wa:#1fa458; color-scheme: dark;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;overscroll-behavior:none}
+.top,.legend{touch-action:none}
+.card{touch-action:pan-y}
 body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:#0c1a1f}
 #map{position:fixed!important;inset:0;width:100%;height:100%;background:#0c1a1f}
 
@@ -171,7 +173,7 @@ async function initMap(){
   try { const d = await dadosPromise; LOTEAMENTOS = d.loteamentos || d; ATUALIZADO = d.atualizado || ''; }
   catch(e){ document.getElementById('nome').textContent = 'Não foi possível carregar os lotes'; document.getElementById('cidade').textContent = 'Recarregue a página em alguns instantes.'; return; }
   map = new google.maps.Map(document.getElementById('map'), {
-    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, mapTypeId:'hybrid', tilt:0,
+    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:8, mapTypeId:'hybrid', tilt:0,
     streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy',
     mapTypeControl:true,
     mapTypeControlOptions:{position:google.maps.ControlPosition.LEFT_BOTTOM, style:google.maps.MapTypeControlStyle.DROPDOWN_MENU}
@@ -180,6 +182,10 @@ async function initMap(){
     L.bounds = limitesDe(L);
     if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.bounds, {opacity:.92, clickable:false});
   });
+  const area = new google.maps.LatLngBounds({lat:-28.0, lng:-49.9}, {lat:-25.8, lng:-48.0}); // leste de Santa Catarina
+  LOTEAMENTOS.forEach(L => area.union(L.bounds));
+  const ne = area.getNorthEast(), sw = area.getSouthWest();
+  map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.3, south:sw.lat()-.3, east:ne.lng()+.3, west:sw.lng()-.3}, strictBounds:false}});
   criarPlacas();
   fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${L.id}">${L.nome}</option>`).join('');
   criarCamada();
