@@ -157,7 +157,7 @@ function entradaDe(lot, plano){
 }
 
 const params = new URLSearchParams(location.search);
-let map, LOT = null, selected = null, circles = [];
+let map, LOT = null, selected = null;
 const fL = document.getElementById('fLot'), fQ = document.getElementById('fQuadra');
 const ZOOM_LOTES = 15;
 const dadosPromise = fetch(CONFIG.dados + '?t=' + Date.now(), {cache:'no-store'}).then(r => r.json());
@@ -182,7 +182,8 @@ async function initMap(){
   });
   criarPlacas();
   fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${L.id}">${L.nome}</option>`).join('');
-  map.addListener('click', closeCard);
+  criarCamada();
+  map.addListener('click', tocarMapa);
   map.addListener('idle', draw);
   const inicial = LOTEAMENTOS.find(L => L.id === params.get('l'));
   if(inicial) escolher(inicial.id);
@@ -288,36 +289,86 @@ function escolher(id){
   else { const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds)); map.fitBounds(b, 60); }
 }
 
+/* Todas as bolinhas são pintadas numa única "tela" (canvas): leve até em celular fraco */
+let camada = null, visiveis = [];
+function criarCamada(){
+  class Camada extends google.maps.OverlayView {
+    onAdd(){ this.cv = document.createElement('canvas'); this.cv.style.position = 'absolute'; this.cv.style.pointerEvents = 'none'; this.cv.style.zIndex = '1000';
+      this.ctx = this.cv.getContext('2d'); this.getPanes().overlayLayer.appendChild(this.cv); }
+    onRemove(){ this.cv.remove(); }
+    draw(){
+      const pr = this.getProjection(), b = map.getBounds(); if(!pr || !b || !this.cv) return;
+      const div = map.getDiv(), W = div.clientWidth, H = div.clientHeight, M = Math.round(Math.max(W,H) * .5);
+      const c0 = pr.fromLatLngToDivPixel(map.getCenter());
+      const x0 = c0.x - W/2 - M, y0 = c0.y - H/2 - M, CW = W + 2*M, CH = H + 2*M;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      this.cv.style.left = x0 + 'px'; this.cv.style.top = y0 + 'px';
+      this.cv.style.width = CW + 'px'; this.cv.style.height = CH + 'px';
+      if(this.cv.width !== Math.round(CW*dpr) || this.cv.height !== Math.round(CH*dpr)){ this.cv.width = Math.round(CW*dpr); this.cv.height = Math.round(CH*dpr); }
+      const ctx = this.ctx; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,CW,CH);
+      const z = map.getZoom();
+      if(z < ZOOM_LOTES){ visiveis = []; return; }
+      const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, z);
+      const r = Math.max(2, 4 / mpp), borda = z >= 18 ? 1.5 : z >= 17 ? .8 : 0;
+      const only = document.getElementById('fDisp').checked, q = LOT ? fQ.value : '';
+      const lista = [];
+      const cores = {livre:[], vendido:[]};
+      LOTEAMENTOS.forEach(L => {
+        if(!b.intersects(L.bounds)) return;
+        if(!L.ll) L.ll = L.lotes.map(l => new google.maps.LatLng(l[4], l[5]));
+        L.lotes.forEach((l, i) => {
+          if(L === LOT && q && l[0] !== q) return;
+          if(only && l[3] !== 0) return;
+          const p = pr.fromLatLngToDivPixel(L.ll[i]), x = p.x - x0, y = p.y - y0;
+          if(x < -r || y < -r || x > CW + r || y > CH + r) return;
+          lista.push({L, l, x:p.x, y:p.y});
+          (l[3] === 0 ? cores.livre : cores.vendido).push([x, y]);
+        });
+      });
+      visiveis = lista;
+      [['vendido','#d23f3f'],['livre','#9aa3a7']].forEach(([k, cor]) => {
+        ctx.beginPath();
+        cores[k].forEach(([x,y]) => { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832); });
+        ctx.fillStyle = cor; ctx.fill();
+        if(borda){ ctx.lineWidth = borda; ctx.strokeStyle = '#fff'; ctx.stroke(); }
+      });
+      if(selected){
+        const i = selected.L.lotes.indexOf(selected.l);
+        if(selected.L.ll){ const p = pr.fromLatLngToDivPixel(selected.L.ll[i]);
+          ctx.beginPath(); ctx.arc(p.x - x0, p.y - y0, r * 1.3, 0, 6.2832);
+          ctx.lineWidth = 3; ctx.strokeStyle = '#0d5d6e'; ctx.stroke(); }
+      }
+    }
+  }
+  camada = new Camada(); camada.setMap(map);
+}
+
+function tocarMapa(e){
+  const pr = camada && camada.getProjection();
+  if(!pr || !visiveis.length){ closeCard(); return; }
+  const p = pr.fromLatLngToDivPixel(e.latLng);
+  const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, map.getZoom());
+  const lim = Math.max(14, 4 / mpp + 4);
+  let melhor = null, dm = lim * lim;
+  visiveis.forEach(v => { const d = (v.x - p.x) ** 2 + (v.y - p.y) ** 2; if(d < dm){ dm = d; melhor = v; } });
+  if(!melhor){ closeCard(); return; }
+  if(map.getZoom() < 18){ map.setCenter({lat:melhor.l[4], lng:melhor.l[5]}); map.setZoom(19); return; }
+  open(melhor.L, melhor.l);
+}
+
 function draw(){
   if(!map) return;
-  circles.forEach(c => c.setMap(null)); circles = [];
   const z = map.getZoom(), vista = map.getBounds(), perto = z >= ZOOM_LOTES;
   const centro = map.getCenter();
   const foco = perto ? (LOTEAMENTOS.find(L => L.bounds.contains(centro)) || LOTEAMENTOS.find(L => vista && vista.intersects(L.bounds)) || null) : null;
   if(foco !== LOT){ LOT = foco; fL.value = LOT ? LOT.id : ''; if(!LOT && selected) closeCard(); cabecalho(); }
   document.querySelector('.top').style.display = LOT ? '' : 'none';
-  const only = document.getElementById('fDisp').checked, mostrarPlanta = document.getElementById('fPlanta').checked;
-  const q = LOT ? fQ.value : '';
+  const mostrarPlanta = document.getElementById('fPlanta').checked;
   LOTEAMENTOS.forEach(L => {
     const visivel = perto && vista && vista.intersects(L.bounds);
-    if(L.overlay) L.overlay.setMap(visivel && mostrarPlanta ? map : null);
-    if(!visivel) return;
-    L.lotes.forEach(l => {
-      const [quadra, num, area, st, lat, lng] = l;
-      const livre = st === 0;
-      if(L === LOT && q && quadra !== q) return;
-      if(only && !livre) return;
-      const isSel = selected && selected.l === l;
-      const c = new google.maps.Circle({map, center:{lat,lng}, radius:isSel?5:4, zIndex:isSel?10:1,
-        strokeColor:isSel?'#0d5d6e':'#ffffff', strokeOpacity:1, strokeWeight:isSel?3:(z>=18?1.5:z>=17?0.8:0),
-        fillColor: livre ? '#9aa3a7' : '#d23f3f', fillOpacity:1});
-      c.addListener('click', () => {
-        if(map.getZoom() < 18){ map.setCenter({lat,lng}); map.setZoom(19); return; }
-        open(L, l);
-      });
-      circles.push(c);
-    });
+    if(L.overlay){ const alvo = visivel && mostrarPlanta ? map : null; if(L.overlay.getMap() !== alvo) L.overlay.setMap(alvo); }
   });
+  if(camada) camada.draw();
   const lista = LOT ? [LOT] : LOTEAMENTOS;
   const tot = lista.reduce((s,L) => s + L.lotes.length, 0), liv = lista.reduce((s,L) => s + L.lotes.filter(l => l[3] === 0).length, 0);
   document.getElementById('count').textContent = `${liv} de ${tot} disponíveis`;
