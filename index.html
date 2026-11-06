@@ -107,7 +107,9 @@ body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 .btn.gm{background:var(--sea-soft);color:var(--ink);font-weight:600;font-size:.92rem;padding:11px}
 .btn:focus-visible,.close:focus-visible,select:focus-visible{outline:3px solid var(--sea);outline-offset:2px}
 .note{font-size:.75rem;color:var(--muted);margin-top:12px}
-.leaflet-control-attribution{font-size:9px}
+.placa{position:absolute;transform:translate(-50%,-50%);cursor:pointer;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45));user-select:none}
+.placa svg{display:block}
+.placa:hover,.placa:focus-visible{filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)) brightness(1.06);outline:none}
 @media (prefers-reduced-motion: reduce){.sheet{transition:none}}
 </style>
 </head>
@@ -155,7 +157,7 @@ function entradaDe(lot, plano){
 }
 
 const params = new URLSearchParams(location.search);
-let map, LOT = null, selected = null, circles = [], markers = [];
+let map, LOT = null, selected = null, circles = [];
 const fL = document.getElementById('fLot'), fQ = document.getElementById('fQuadra');
 const ZOOM_LOTES = 15;
 const dadosPromise = fetch(CONFIG.dados + '?t=' + Date.now(), {cache:'no-store'}).then(r => r.json());
@@ -177,12 +179,8 @@ async function initMap(){
   LOTEAMENTOS.forEach(L => {
     L.bounds = limitesDe(L);
     if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.bounds, {opacity:.92, clickable:false});
-    const m = new google.maps.Marker({position:{lat:L.centro[0], lng:L.centro[1]}, title:L.nome,
-      icon:{path:google.maps.SymbolPath.CIRCLE, scale:9, fillColor:'#0d5d6e', fillOpacity:1, strokeColor:'#ffffff', strokeWeight:2, labelOrigin:new google.maps.Point(0,3.2)},
-      label:{text:L.nome.replace(/^Loteamento\s+/i,''), color:'#ffffff', fontWeight:'800', fontSize:'13px'}});
-    m.addListener('click', () => escolher(L.id));
-    markers.push(m);
   });
+  criarPlacas();
   fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${L.id}">${L.nome}</option>`).join('');
   map.addListener('click', closeCard);
   map.addListener('idle', draw);
@@ -192,6 +190,81 @@ async function initMap(){
   else { const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds)); map.fitBounds(b, 60); cabecalho(); }
 }
 window.initMap = initMap;
+
+/* ===== Placas douradas com o nome do loteamento ===== */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const medidor = document.createElement('canvas').getContext('2d');
+function larguraTexto(t, px){ medidor.font = `bold ${px}px Georgia, "Times New Roman", serif`; return medidor.measureText(t).width; }
+
+function svgPlaca(linha1, linha2){
+  const W = Math.max(130, Math.ceil(Math.max(linha2 ? larguraTexto(linha2,15) : 0, larguraTexto(linha1, linha2 ? 9 : 14))) + 46);
+  const H = 66, y1 = 10, y2 = 56, r = 9, c = W/2, uid = 'g' + Math.random().toString(36).slice(2,8);
+  const forma = (i) => `M${r+i},${y1+i} H${W-r-i} A${r} ${r} 0 0 0 ${W-i},${y1+r+i} V${y2-r-i} A${r} ${r} 0 0 0 ${W-r-i},${y2-i} H${r+i} A${r} ${r} 0 0 0 ${i},${y2-r-i} V${y1+r+i} A${r} ${r} 0 0 0 ${r+i},${y1+i} Z`;
+  const enfeite = (y, s) => `<g transform="translate(${c} ${y}) scale(1 ${s})" fill="url(#o${uid})" stroke="#5a3608" stroke-width=".6">
+      <path d="M0,-1 C-4,-9 -13,-9 -14,-3 C-15,2 -9,4 -7,0 C-6,-2 -8,-4 -10,-3 C-9,-6 -4,-6 -3,-1 C-2,2 -1,3 0,4 C1,3 2,2 3,-1 C4,-6 9,-6 10,-3 C8,-4 6,-2 7,0 C9,4 15,2 14,-3 C13,-9 4,-9 0,-1 Z"/>
+      <path d="M-15,-1 C-22,-6 -30,-4 -34,1 C-29,-1 -23,0 -16,2 Z M15,-1 C22,-6 30,-4 34,1 C29,-1 23,0 16,2 Z"/></g>`;
+  const texto = linha2
+    ? `<text x="${c}" y="29" font-size="9" letter-spacing="2.5">${esc(linha1.toUpperCase())}</text><text x="${c}" y="46" font-size="15">${esc(linha2)}</text>`
+    : `<text x="${c}" y="38" font-size="14">${esc(linha1)}</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <linearGradient id="b${uid}" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stop-color="#9c6a1c"/><stop offset=".22" stop-color="#d8ac4c"/><stop offset=".5" stop-color="#fbeaa6"/>
+        <stop offset=".78" stop-color="#d8ac4c"/><stop offset="1" stop-color="#9c6a1c"/></linearGradient>
+      <linearGradient id="s${uid}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#5a3608" stop-opacity=".25"/></linearGradient>
+      <linearGradient id="o${uid}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f3d27a"/><stop offset="1" stop-color="#8a5a14"/></linearGradient>
+    </defs>
+    <path d="${forma(0)}" fill="#6e4510"/>
+    <path d="${forma(1.5)}" fill="url(#b${uid})"/>
+    <path d="${forma(1.5)}" fill="url(#s${uid})"/>
+    <path d="${forma(5)}" fill="none" stroke="#7a4e12" stroke-width="1.1"/>
+    <path d="${forma(6.2)}" fill="none" stroke="#fff4c8" stroke-width=".8" opacity=".9"/>
+    ${enfeite(y1+1, 1)}${enfeite(y2-1, -1)}
+    <g font-family="Georgia, 'Times New Roman', serif" font-weight="bold" text-anchor="middle" fill="#4a2a04">${texto}</g>
+  </svg>`;
+}
+
+function criarPlacas(){
+  LOTEAMENTOS.forEach(L => {
+    const curto = L.nome.replace(/^Loteamento\s+/i,'');
+    L.placaSvg = curto !== L.nome ? svgPlaca('Loteamento', curto) : svgPlaca(L.nome);
+    L.placaW = +L.placaSvg.match(/width="(\d+)"/)[1];
+  });
+  class Placas extends google.maps.OverlayView {
+    onAdd(){ this.box = document.createElement('div'); this.getPanes().overlayMouseTarget.appendChild(this.box); }
+    onRemove(){ this.box.remove(); }
+    draw(){
+      const pr = this.getProjection(); if(!pr || !this.box) return;
+      this.box.innerHTML = '';
+      if(map.getZoom() >= ZOOM_LOTES) return;
+      const itens = LOTEAMENTOS.map(L => ({L, p: pr.fromLatLngToDivPixel(new google.maps.LatLng(L.centro[0], L.centro[1]))}));
+      const grupos = [];
+      itens.forEach(it => {
+        const g = grupos.find(g => g.itens.some(o => Math.abs(o.p.x - it.p.x) < (o.L.placaW + it.L.placaW)/2 + 8 && Math.abs(o.p.y - it.p.y) < 62));
+        g ? g.itens.push(it) : grupos.push({itens:[it]});
+      });
+      grupos.forEach(g => {
+        const x = g.itens.reduce((s,o) => s + o.p.x, 0) / g.itens.length, y = g.itens.reduce((s,o) => s + o.p.y, 0) / g.itens.length;
+        const el = document.createElement('div');
+        el.className = 'placa'; el.tabIndex = 0; el.setAttribute('role','button');
+        el.style.left = x + 'px'; el.style.top = y + 'px';
+        if(g.itens.length === 1){
+          const L = g.itens[0].L;
+          el.innerHTML = L.placaSvg; el.setAttribute('aria-label', 'Ver ' + L.nome);
+          el.onclick = () => escolher(L.id);
+        } else {
+          el.innerHTML = svgPlaca(`${g.itens.length} loteamentos aqui`); el.setAttribute('aria-label', `${g.itens.length} loteamentos aqui, aproximar`);
+          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); map.fitBounds(b, 80); };
+        }
+        el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.onclick(); } };
+        google.maps.OverlayView.preventMapHitsAndGesturesFrom(el);
+        this.box.appendChild(el);
+      });
+    }
+  }
+  new Placas().setMap(map);
+}
 
 function cabecalho(){
   document.getElementById('nome').textContent = LOT ? LOT.nome : 'Loteamentos Irineu Imóveis';
@@ -218,7 +291,6 @@ function draw(){
   const z = map.getZoom(), vista = map.getBounds(), perto = z >= ZOOM_LOTES;
   const only = document.getElementById('fDisp').checked, mostrarPlanta = document.getElementById('fPlanta').checked;
   const q = LOT ? fQ.value : '';
-  markers.forEach(m => m.setMap(perto ? null : map));
   LOTEAMENTOS.forEach(L => {
     const visivel = perto && vista && vista.intersects(L.bounds);
     if(L.overlay) L.overlay.setMap(visivel && mostrarPlanta ? map : null);
