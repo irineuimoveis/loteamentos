@@ -1,0 +1,23 @@
+name: Atualizar lotes
+on:
+  schedule:
+    - cron: "0 * * * *"   # de hora em hora
+  workflow_dispatch:       # botão "Run workflow" para rodar na hora
+permissions:
+  contents: write
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar lotes do forinvest
+        run: python3 atualizar.py
+        env:
+          FORINVEST_EMAIL: ${{ secrets.FORINVEST_EMAIL }}
+          FORINVEST_SENHA: ${{ secrets.FORINVEST_SENHA }}
+      - name: Salvar se mudou
+        run: |
+          git config user.name "robo-lotes"
+          git config user.email "robo-lotes@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet || (git commit -m "Atualiza lotes" && git push)
