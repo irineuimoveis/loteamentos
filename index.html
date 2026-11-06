@@ -6,35 +6,6 @@
 <title>Mapa dos lotes | Irineu Imóveis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
-<script>
-/* =====================================================================
-   CONFIGURAÇÃO — EDITE AQUI
-   Depois de editar, salve e suba o arquivo de novo na hospedagem.
-   ===================================================================== */
-const CONFIG = {
-  salarioMinimo: 1621,              // valor atual do salário mínimo (R$)
-  whatsapp: "5547992422059",        // 55 + DDD + número, só dígitos
-  googleMapsKey: "AIzaSyBLNed6B7eZyrQxnIC9WeXGKDnTbbTIyZQ", // chave da API do Google Maps
-  repo: "irineuimoveis/loteamentos",   // onde ficam data.json e config.json
-  // Situação de cada lote no forinvest (número do status → como aparece no mapa)
-  situacoes: { 0: "disponivel", 2: "reservado", 3: "indisponivel", 4: "vendido" },
-  // Arquivo com os lotes, atualizado sozinho pelo robô
-  dados: "https://raw.githubusercontent.com/irineuimoveis/loteamentos/main/data.json",
-
-  // ENTRADA À VISTA: vem sozinha do "Cod." de cada terreno no forinvest (30.0 = R$ 30.000)
-  // ENTRADA FACILITADA: sinal + parcelas abaixo. Deixe valorParcela: null para calcular
-  // sozinho: (entrada à vista - sinal) ÷ parcelas
-  entrada: {
-    todos: {
-      padrao: { sinal: 5000, parcelas: 10, valorParcela: null },
-      porPlano: {}
-    },
-    // Para um loteamento com regra diferente, copie o bloco "todos" com o id dele. Exemplo:
-    // "thomaselli": { padrao: { sinal: 1000, parcelas: 12, valorParcela: null }, porPlano: {} },
-  }
-};
-/* ===================== FIM DA CONFIGURAÇÃO ===================== */
-</script>
 <style>
 :root{
   --paper:#ffffff; --ink:#132c34; --muted:#5b6f76; --line:#dbe4e6;
@@ -144,17 +115,64 @@ details.box[open] summary::after{content:"▴"}
 .filtro select{flex:1}
 .mini{font-size:.78rem;color:var(--muted)}
 .lnk{color:var(--sea);font-weight:700;background:none;border:0;padding:0;font:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline}
+/* ===== título com compartilhar ===== */
+.ttl{display:flex;align-items:center;gap:8px}
+.share{flex:none;width:32px;height:32px;border-radius:50%;border:0;background:var(--sea-soft);color:var(--sea);display:grid;place-items:center;cursor:pointer;padding:0}
+.share svg{width:17px;height:17px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);transform:translateX(-50%);background:#132c34;color:#fff;padding:10px 16px;border-radius:999px;font-size:.88rem;z-index:4000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+/* ===== botão consultar corretor ===== */
+.btn.consulta{display:inline-flex;gap:6px;align-items:center;background:var(--wa);color:#fff;font-size:.85rem;padding:8px 12px;border-radius:999px;text-decoration:none;font-weight:800}
+.btn.consulta svg{width:15px;height:15px;flex:none}
+.row b .btn.consulta{margin-top:2px}
+/* ===== modo marcar lotes ===== */
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:2500;display:none;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px)}
+.selbar.on{display:block}
+.selbar .in{background:var(--paper);color:var(--ink);max-width:560px;margin:0 auto;border-radius:16px;box-shadow:0 -4px 24px rgba(0,0,0,.35);padding:12px}
+.selbar .t1{font-weight:800}
+.selbar .t2{font-size:.82rem;color:var(--muted);margin-top:2px}
+.selbar .bb{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:10px}
+.selbar .btn{padding:12px}
+/* ===== painel: condições e pendências ===== */
+.cond{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:9px 10px;margin:8px 0}
+.cond .cx{flex:1;min-width:0}
+.cond .cx b{display:block;font-weight:800;font-size:.92rem}
+.cond .cx span{font-size:.76rem;color:var(--muted)}
+.ico{flex:none;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--sea-soft);color:var(--ink);font-size:1rem;cursor:pointer;display:grid;place-items:center}
+.ico.marcar{width:auto;padding:0 10px;font-size:.78rem;font-weight:800;color:var(--sea)}
+.form{border:1px dashed var(--sea);border-radius:12px;padding:10px;margin:8px 0}
+.form .bb{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.form .bb .btn{padding:10px 14px;font-size:.88rem}
+.btn.del{background:#fbe0e0;color:#a12b2b;font-weight:700}
+.entr{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.entr:last-child{border-bottom:0}
+.entr .ex{flex:1 1 100%;font-size:.88rem}
+.entr .ex small{display:block;color:var(--muted);font-size:.74rem}
+.entr select{flex:1 1 100%;font-size:14px;padding:9px}
+.badge{display:inline-block;font-size:.72rem;font-weight:800;border-radius:999px;padding:2px 8px;background:#fde3cb;color:#8a4a0c;margin-left:6px;vertical-align:1px}
+.badge.ok{background:#e1f4e8;color:#126a39}
+.pend{font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--sea-soft);border-radius:10px;padding:8px 10px;margin-top:6px;max-height:180px;overflow:auto}
+.sub2{font-size:.78rem;font-weight:800;color:var(--muted);margin:12px 0 2px;letter-spacing:.03em}
+.lnkbtn{background:none;border:0;color:var(--sea);font:inherit;font-weight:800;font-size:.86rem;padding:6px 0;cursor:pointer}
+.sitrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.sitrow:last-child{border-bottom:0}
+.sitrow .ex{flex:1;font-size:.84rem}
+.sitrow .ex small{display:block;color:var(--muted);font-size:.74rem}
+.sitrow select{max-width:50%;font-size:14px;padding:8px}
 </style>
 </head>
 <body>
 <div id="map"></div>
 
-<div class="top"><div class="bar">
-  <h1 id="nome"></h1>
+<div class="top" id="topo" style="display:none"><div class="bar">
+  <div class="ttl"><h1 id="nome"></h1>
+    <button class="share" id="btnShare" aria-label="Compartilhar o link deste loteamento" title="Compartilhar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+    </button></div>
   <div class="sub" id="cidade"></div>
   <div class="filters">
     <select id="fLot" aria-label="Escolher loteamento"></select>
-    <select id="fQuadra" aria-label="Filtrar por quadra" hidden></select>
+    <select id="fQuadra" aria-label="Filtrar por quadra"></select>
     <label class="chip"><input type="checkbox" id="fDisp"> Só disponíveis</label>
     <label class="chip"><input type="checkbox" id="fPlanta" checked> Planta</label>
     <span class="count" id="count"></span>
@@ -174,28 +192,45 @@ details.box[open] summary::after{content:"▴"}
 </div>
 
 <div class="ovl" id="admin" role="dialog" aria-modal="true" aria-labelledby="admTit">
-  <div class="adm-head"><h2 id="admTit">Configurações</h2><button class="close" id="admFechar" aria-label="Fechar">✕</button></div>
+  <div class="adm-head"><h2 id="admTit">Área do corretor</h2><button class="close" id="admFechar" aria-label="Fechar">✕</button></div>
   <div class="adm-body" id="admCorpo"></div>
   <div class="adm-foot"><div class="adm-msg" id="admMsg" aria-live="polite"></div><button class="btn pri" id="admSalvar">Salvar para todos</button></div>
 </div>
 
+<div class="selbar" id="selbar" role="region" aria-label="Marcar lotes"><div class="in">
+  <div class="t1" id="selT1"></div><div class="t2" id="selT2">Toque nos lotes para marcar ou desmarcar.</div>
+  <div class="bb"><button class="btn sec" id="selCancel">Cancelar</button><button class="btn pri" id="selOk">Confirmar e salvar</button></div>
+</div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="loteTitulo"><div class="card" id="card"></div></div>
 
 <script>
-let LOTEAMENTOS = [], ATUALIZADO = "";
-const SIT = {
-  disponivel:   {nome:'Disponível',   cor:'#9aa3a7', fundo:'#e7ebec'},
-  reservado:    {nome:'Reservado',    cor:'#f2c230', fundo:'#fdf1c7'},
-  indisponivel: {nome:'Indisponível', cor:'#f08a24', fundo:'#fde3cb'},
-  vendido:      {nome:'Vendido',      cor:'#d23f3f', fundo:'#fbe0e0'}
+/* =====================================================================
+   CONFIGURAÇÃO BÁSICA — o resto se edita pela Área do corretor
+   (5 toques na legenda). O que for salvo lá vale por cima disto.
+   ===================================================================== */
+const CONFIG = {
+  salarioMinimo: 1621,
+  whatsapp: "5547992422059",
+  googleMapsKey: "AIzaSyBLNed6B7eZyrQxnIC9WeXGKDnTbbTIyZQ",
+  repo: "irineuimoveis/loteamentos"
 };
-const situacao = st => (CONFIG.situacoes||{})[st] || (st === 0 ? 'disponivel' : 'indisponivel');
-document.getElementById('legenda').innerHTML = Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
+/* ===================================================================== */
 
+const REPO_NOME = CONFIG.repo.split('/')[1];
+const RAW = `https://raw.githubusercontent.com/${CONFIG.repo}/main/`;
+const BASE = location.hostname.endsWith('github.io') ? `${location.origin}/${REPO_NOME}/` : location.origin + location.pathname.replace(/[^/]*$/, '');
+const ZOOM_LOTES = 14;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const numOk = v => typeof v === 'number' && isFinite(v);
 const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
+const rs = v => 'R$' + v.toLocaleString('pt-BR',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
 const FRAC = {'1/4':'¼','1/2':'½','3/4':'¾'};
 function parsePlano(k){
-  const fases = k.split('+').map(s => {
+  const fases = String(k||'').split('+').map(s => {
     const m = s.match(/(\d+)\s*X\s*([\d \/]+)/i); if(!m) return null;
     let val = 0, txt = '';
     m[2].trim().split(/\s+/).forEach(p => { if(p.includes('/')){const [a,b]=p.split('/');val+=a/b;txt+=FRAC[p]||(' '+p);} else {val+=+p;txt+=p;} });
@@ -203,46 +238,97 @@ function parsePlano(k){
   }).filter(Boolean);
   return fases.length ? {fases} : null;
 }
-const rs = v => 'R$' + v.toLocaleString('pt-BR',{minimumFractionDigits:Number.isInteger(v)?0:2,maximumFractionDigits:2});
 const salMsg = f => f.val < 1 ? `${Math.round(f.val*100)}% do Salário` : `${f.txt} Salário`;
-/* Regras da entrada facilitada. Ordem: geral → loteamento → grupo (o mais específico vence).
-   Campo vazio = herda do nível de cima. Vêm do config.json salvo pelo painel. */
-const numOk = v => typeof v === 'number' && isFinite(v);
-const limpo = o => { const r = {}; Object.entries(o||{}).forEach(([k,v]) => { if(numOk(v)) r[k] = v; }); return r; };
-let REGRAS = (() => {
-  const E = CONFIG.entrada || {}, r = {geral: limpo((E.todos||{}).padrao), lot:{}, grupos:{}};
-  Object.entries(E).forEach(([id, v]) => { if(id !== 'todos' && v && v.padrao) r.lot[id] = limpo(v.padrao); });
-  return r;
-})();
-const grupoKey = (plano, ent) => (plano || 'sem plano') + '|' + (ent || 0);
-function regraEfetiva(R, L, plano, ent){
-  return Object.assign({}, limpo(R.geral), limpo((R.lot||{})[L.id]), limpo((R.grupos||{})[grupoKey(plano, ent)]));
-}
-function calcEntrada(R, L, plano, ent){
-  const c = regraEfetiva(R, L, plano, ent);
-  const aVista = ent || c.aVista;
-  if(!aVista) return null;
-  const out = {aVista, sinal: c.sinal || 0, parcelas: c.parcelas || 0, valorParcela: c.valorParcela};
-  if(out.parcelas && !numOk(out.valorParcela)) out.valorParcela = Math.round((aVista - out.sinal) / out.parcelas);
-  if(!out.parcelas) out.valorParcela = null;
-  return out;
-}
-function entradaDe(L, plano, l){ return calcEntrada(REGRAS, L, plano, l[7]); }
+const ICO_CHAT = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm4 7.5a1.5 1.5 0 1 0 0 .01zm4 0a1.5 1.5 0 1 0 0 .01zm4 0a1.5 1.5 0 1 0 0 .01z"/></svg>';
 
-const params = new URLSearchParams(location.search);
-let map, LOT = null, selected = null;
-const fL = document.getElementById('fLot'), fQ = document.getElementById('fQuadra');
-const ZOOM_LOTES = 15;
-const dadosPromise = fetch(CONFIG.dados + '?t=' + Date.now(), {cache:'no-store'}).then(r => r.json());
-const configPromise = fetch(`https://raw.githubusercontent.com/${CONFIG.repo}/main/config.json?t=${Date.now()}`, {cache:'no-store'})
-  .then(r => r.ok ? r.json() : null).catch(() => null);
+/* ---------- Situação de cada lote (cores) ---------- */
+const SIT = {
+  disponivel:  {nome:'Disponível',           cor:'#9aa3a7', fundo:'#e7ebec'},
+  reservado:   {nome:'Reservado',            cor:'#f2c230', fundo:'#fdf1c7'},
+  definitivo:  {nome:'Reservado definitivo', cor:'#2f80ed', fundo:'#dceafc'},
+  indisponivel:{nome:'Indisponível',         cor:'#f08a24', fundo:'#fde3cb'},
+  vendido:     {nome:'Vendido',              cor:'#d23f3f', fundo:'#fbe0e0'}
+};
+const SIT_PADRAO = {0:'disponivel', 1:'reservado', 2:'reservado', 3:'vendido', 4:'definitivo', 5:'indisponivel'};
+
+/* ---------- Regras salvas pela Área do corretor (config.json) ----------
+   lots[id] = { conds:[{id,sinal,parcelas,valor}], porEntrada:{ "15000": condId }, porLote:{ "A|12": condId | "-" } } */
+let REGRAS = {situacoes:{}, lots:{}};
+let LOTEAMENTOS = [], ATUALIZADO = '';
+const situacao = st => (REGRAS.situacoes && REGRAS.situacoes[st]) || SIT_PADRAO[st] || 'indisponivel';
+const chaveLote = l => l[0] + '|' + l[1];
+
+function normalizaRegras(r){
+  r = r || {};
+  const lots = {};
+  Object.entries(r.lots || {}).forEach(([id, v]) => {
+    lots[id] = {
+      conds: (v.conds || []).filter(c => c && c.id && numOk(c.parcelas) && c.parcelas > 0)
+        .map(c => ({id:String(c.id), sinal: numOk(c.sinal) ? c.sinal : 0, parcelas: Math.round(c.parcelas), valor: numOk(c.valor) && c.valor > 0 ? c.valor : null})),
+      porEntrada: Object.assign({}, v.porEntrada || {}),
+      porLote: Object.assign({}, v.porLote || {})
+    };
+  });
+  const sit = {};
+  Object.entries(r.situacoes || {}).forEach(([k, v]) => { if(SIT[v]) sit[k] = v; });
+  return {situacoes: sit, lots};
+}
+function condIdDe(R, L, l){
+  const r = R.lots[L.id]; if(!r) return null;
+  const cl = r.porLote[chaveLote(l)];
+  if(cl === '-') return null;
+  const id = cl || r.porEntrada[String(l[7] || 0)];
+  return id && r.conds.some(c => c.id === id) ? id : null;
+}
+function condDe(R, L, l){ const id = condIdDe(R, L, l); return id ? R.lots[L.id].conds.find(c => c.id === id) : null; }
+function valorParcela(c, aVista){
+  if(!c) return null;
+  if(numOk(c.valor)) return c.valor;
+  return aVista ? Math.round((aVista - (c.sinal || 0)) / c.parcelas) : null;
+}
+function entradaDe(L, l){
+  const aVista = l[7] || null, c = condDe(REGRAS, L, l);
+  const vp = valorParcela(c, aVista);
+  return {aVista, cond: c && vp > 0 ? c : null, sinal: c ? c.sinal : 0, parcelas: c ? c.parcelas : 0, valorParcela: vp};
+}
+const textoCond = (c, aVista) => {
+  const vp = valorParcela(c, aVista);
+  return `${rs(c.sinal || 0)} + ${c.parcelas}x de ${vp ? rs(vp) : (numOk(c.valor) ? rs(c.valor) : 'parcela automática')}`;
+};
+const textoCondCurto = c => `Sinal ${rs(c.sinal || 0)} + ${c.parcelas}x ${numOk(c.valor) ? 'de ' + rs(c.valor) : '(parcela automática)'}`;
+
+/* ---------- Carregar dados e configurações ---------- */
+const dadosPromise = fetch(RAW + 'data.json?t=' + Date.now(), {cache:'no-store'}).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); });
+const configPromise = fetch(RAW + 'config.json?t=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null);
 function aplicarConfig(c){
   if(!c) return;
   if(numOk(+c.salarioMinimo) && +c.salarioMinimo > 0) CONFIG.salarioMinimo = +c.salarioMinimo;
-  if(c.whatsapp && String(c.whatsapp).replace(/\D/g,'').length >= 12) CONFIG.whatsapp = String(c.whatsapp).replace(/\D/g,'');
-  if(c.regras) REGRAS = {geral: limpo(c.regras.geral), lot: Object.fromEntries(Object.entries(c.regras.lot||{}).map(([k,v]) => [k, limpo(v)])),
-    grupos: Object.fromEntries(Object.entries(c.regras.grupos||{}).map(([k,v]) => [k, limpo(v)]))};
+  const w = String(c.whatsapp || '').replace(/\D/g, '');
+  if(w.length >= 12) CONFIG.whatsapp = w;
+  REGRAS = normalizaRegras(c);
 }
+
+function slugDaUrl(){
+  const q = new URLSearchParams(location.search).get('l');
+  if(q) return q.toLowerCase();
+  const partes = location.pathname.split('/').filter(Boolean);
+  const i = partes.indexOf(REPO_NOME);
+  const s = i >= 0 ? partes[i + 1] : partes[partes.length - 1];
+  return s && s !== 'index.html' ? decodeURIComponent(s).toLowerCase() : '';
+}
+function linkDe(L){ return BASE + (L ? encodeURIComponent(L.id) : ''); }
+function atualizarUrl(){
+  if(!location.hostname.endsWith('github.io')) return;
+  const alvo = linkDe(LOT);
+  if(location.href.replace(/\/$/, '') !== alvo.replace(/\/$/, '')) history.replaceState(null, '', alvo);
+}
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
+
+/* =====================================================================
+   MAPA
+   ===================================================================== */
+let map, LOT = null, selected = null, camada = null, visiveis = [], placas = null, MODO = null;
+const fL = $('fLot'), fQ = $('fQuadra');
 
 function limitesDe(L){
   const b = new google.maps.LatLngBounds();
@@ -250,38 +336,66 @@ function limitesDe(L){
   L.lotes.forEach(l => b.extend({lat:l[4], lng:l[5]}));
   return b;
 }
+const zoomFoco = L => Math.min(ZOOM_LOTES, L.fitZoom || ZOOM_LOTES);
+const emFoco = (L, z, vista) => z >= zoomFoco(L) && vista && vista.intersects(L.bounds);
 
 async function initMap(){
-  try { const d = await dadosPromise; LOTEAMENTOS = d.loteamentos || d; ATUALIZADO = d.atualizado || ''; aplicarConfig(await configPromise); }
-  catch(e){ document.getElementById('nome').textContent = 'Não foi possível carregar os lotes'; document.getElementById('cidade').textContent = 'Recarregue a página em alguns instantes.'; return; }
-  map = new google.maps.Map(document.getElementById('map'), {
-    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:8, mapTypeId:'hybrid', tilt:0,
-    streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy',
-    mapTypeControl:true,
+  try {
+    const d = await dadosPromise;
+    LOTEAMENTOS = (d.loteamentos || d).filter(L => L && L.lotes && L.lotes.length);
+    ATUALIZADO = d.atualizado || '';
+    aplicarConfig(await configPromise);
+  } catch(e){
+    $('topo').style.display = ''; $('nome').textContent = 'Não foi possível carregar os lotes';
+    $('cidade').textContent = 'Verifique a internet e recarregue a página.'; return;
+  }
+  map = new google.maps.Map($('map'), {
+    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:11, minZoom:8, mapTypeId:'hybrid', tilt:0,
+    streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy', mapTypeControl:true,
     mapTypeControlOptions:{position:google.maps.ControlPosition.LEFT_BOTTOM, style:google.maps.MapTypeControlStyle.DROPDOWN_MENU}
   });
   LOTEAMENTOS.forEach(L => {
     L.bounds = limitesDe(L);
-    if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.bounds, {opacity:.92, clickable:false});
+    if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
+      {lat:L.planta.limites[0][0], lng:L.planta.limites[0][1]}, {lat:L.planta.limites[1][0], lng:L.planta.limites[1][1]}) : L.bounds, {opacity:.92, clickable:false});
   });
-  const area = new google.maps.LatLngBounds({lat:-28.0, lng:-49.9}, {lat:-25.8, lng:-48.0}); // leste de Santa Catarina
+  const area = new google.maps.LatLngBounds({lat:-28.0, lng:-49.9}, {lat:-25.8, lng:-48.0}); // leste de SC
   LOTEAMENTOS.forEach(L => area.union(L.bounds));
   const ne = area.getNorthEast(), sw = area.getSouthWest();
   map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.3, south:sw.lat()-.3, east:ne.lng()+.3, west:sw.lng()-.3}, strictBounds:false}});
-  criarPlacas();
-  fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${L.id}">${L.nome}</option>`).join('');
-  criarCamada();
+  criarPlacas(); criarCamada();
+  fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${esc(L.id)}">${esc(L.nome)}</option>`).join('');
   map.addListener('click', tocarMapa);
   map.addListener('idle', draw);
-  const inicial = LOTEAMENTOS.find(L => L.id === params.get('l'));
-  if(inicial) escolher(inicial.id);
-  else if(LOTEAMENTOS.length === 1) escolher(LOTEAMENTOS[0].id);
-  else { const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds)); map.fitBounds(b, 60); cabecalho(); }
+  const ini = LOTEAMENTOS.find(L => L.id.toLowerCase() === slugDaUrl());
+  if(ini) escolher(ini.id); else verTodos();
 }
 window.initMap = initMap;
 
-/* ===== Placas douradas com o nome do loteamento ===== */
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+function verTodos(){
+  const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds));
+  map.fitBounds(b, 60);
+}
+function escolher(id){
+  const L = LOTEAMENTOS.find(x => x.id === id);
+  closeCard();
+  if(!L){ LOT = null; verTodos(); return; }
+  map.fitBounds(L.bounds, {top:175, bottom:80, left:16, right:16});
+  google.maps.event.addListenerOnce(map, 'idle', () => { L.fitZoom = map.getZoom(); draw(); });
+}
+
+function cabecalho(){
+  $('nome').textContent = LOT ? LOT.nome : '';
+  $('cidade').textContent = LOT ? LOT.cidade : '';
+  document.title = (LOT ? LOT.nome : 'Loteamentos Irineu Imóveis') + ' | Mapa dos lotes';
+  fL.value = LOT ? LOT.id : '';
+  if(LOT){
+    const qs = [...new Set(LOT.lotes.map(l => l[0]))].sort((a,b) => a.localeCompare(b, 'pt-BR', {numeric:true}));
+    fQ.innerHTML = '<option value="">Todas as quadras</option>' + qs.map(q => `<option value="${esc(q)}">Quadra ${esc(q)}</option>`).join('');
+  }
+}
+
+/* ----- Placas douradas ----- */
 const medidor = document.createElement('canvas').getContext('2d');
 function larguraTexto(t, px){ medidor.font = `bold ${px}px Georgia, "Times New Roman", serif`; return medidor.measureText(t).width; }
 
@@ -314,6 +428,7 @@ function svgPlaca(linha1, linha2){
   </svg>`;
 }
 
+
 function criarPlacas(){
   LOTEAMENTOS.forEach(L => {
     const curto = L.nome.replace(/^Loteamento\s+/i,'');
@@ -326,8 +441,10 @@ function criarPlacas(){
     draw(){
       const pr = this.getProjection(); if(!pr || !this.box) return;
       this.box.innerHTML = '';
-      if(map.getZoom() >= ZOOM_LOTES) return;
-      const itens = LOTEAMENTOS.map(L => ({L, p: pr.fromLatLngToDivPixel(new google.maps.LatLng(L.centro[0], L.centro[1]))}));
+      const z = map.getZoom(), vista = map.getBounds();
+      if(MODO || z >= ZOOM_LOTES) return;
+      const itens = LOTEAMENTOS.filter(L => !emFoco(L, z, vista))
+        .map(L => ({L, p: pr.fromLatLngToDivPixel(new google.maps.LatLng(L.centro[0], L.centro[1]))}));
       const grupos = [];
       itens.forEach(it => {
         const g = grupos.find(g => g.itens.some(o => Math.abs(o.p.x - it.p.x) < (o.L.placaW + it.L.placaW)/2 + 8 && Math.abs(o.p.y - it.p.y) < 62));
@@ -352,36 +469,13 @@ function criarPlacas(){
       });
     }
   }
-  new Placas().setMap(map);
+  placas = new Placas(); placas.setMap(map);
 }
 
-function cabecalho(){
-  document.getElementById('nome').textContent = LOT ? LOT.nome : 'Loteamentos Irineu Imóveis';
-  document.getElementById('cidade').textContent = LOT ? LOT.cidade : 'Escolha um loteamento ou aproxime o mapa';
-  document.title = (LOT ? LOT.nome : 'Loteamentos') + ' | Mapa dos lotes';
-  fQ.hidden = !LOT;
-  if(LOT){
-    const qs = [...new Set(LOT.lotes.map(l => l[0]))];
-    fQ.innerHTML = '<option value="">Todas as quadras</option>' + qs.map(q => `<option value="${q}">Quadra ${q}</option>`).join('');
-  }
-}
-
-function escolher(id){
-  LOT = LOTEAMENTOS.find(L => L.id === id) || null;
-  fL.value = LOT ? LOT.id : '';
-  closeCard(); cabecalho();
-  if(LOT){
-    map.fitBounds(LOT.bounds, 10);
-    google.maps.event.addListenerOnce(map, 'idle', () => { if(map.getZoom() < ZOOM_LOTES) map.setZoom(ZOOM_LOTES); });
-  }
-  else { const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds)); map.fitBounds(b, 60); }
-}
-
-/* Todas as bolinhas são pintadas numa única "tela" (canvas): leve até em celular fraco */
-let camada = null, visiveis = [];
+/* ----- Bolinhas: uma única camada de desenho (leve em celular fraco) ----- */
 function criarCamada(){
   class Camada extends google.maps.OverlayView {
-    onAdd(){ this.cv = document.createElement('canvas'); this.cv.style.position = 'absolute'; this.cv.style.pointerEvents = 'none'; this.cv.style.zIndex = '1000';
+    onAdd(){ this.cv = document.createElement('canvas'); Object.assign(this.cv.style, {position:'absolute', pointerEvents:'none', zIndex:'1000'});
       this.ctx = this.cv.getContext('2d'); this.getPanes().overlayLayer.appendChild(this.cv); }
     onRemove(){ this.cv.remove(); }
     draw(){
@@ -390,115 +484,130 @@ function criarCamada(){
       const c0 = pr.fromLatLngToDivPixel(map.getCenter());
       const x0 = c0.x - W/2 - M, y0 = c0.y - H/2 - M, CW = W + 2*M, CH = H + 2*M;
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      this.cv.style.left = x0 + 'px'; this.cv.style.top = y0 + 'px';
-      this.cv.style.width = CW + 'px'; this.cv.style.height = CH + 'px';
+      Object.assign(this.cv.style, {left:x0+'px', top:y0+'px', width:CW+'px', height:CH+'px'});
       if(this.cv.width !== Math.round(CW*dpr) || this.cv.height !== Math.round(CH*dpr)){ this.cv.width = Math.round(CW*dpr); this.cv.height = Math.round(CH*dpr); }
       const ctx = this.ctx; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,CW,CH);
-      const z = map.getZoom();
-      if(z < ZOOM_LOTES){ visiveis = []; return; }
+      const z = map.getZoom(); visiveis = [];
       const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, z);
       const r = Math.max(2, 4 / mpp), borda = z >= 18 ? 1.5 : z >= 17 ? .8 : 0;
-      const only = document.getElementById('fDisp').checked, q = LOT ? fQ.value : '';
-      const lista = [];
-      const cores = {disponivel:[], reservado:[], indisponivel:[], vendido:[]};
+      const only = $('fDisp').checked, q = LOT ? fQ.value : '';
+      const cores = {}; Object.keys(SIT).forEach(k => cores[k] = []);
+      const marcados = [];
       LOTEAMENTOS.forEach(L => {
-        if(!b.intersects(L.bounds)) return;
+        if(MODO ? L !== MODO.L : !emFoco(L, z, b)) return;
         if(!L.ll) L.ll = L.lotes.map(l => new google.maps.LatLng(l[4], l[5]));
         L.lotes.forEach((l, i) => {
-          if(L === LOT && q && l[0] !== q) return;
-          if(only && l[3] !== 0) return;
+          if(!MODO && L === LOT && q && l[0] !== q) return;
+          if(!MODO && only && situacao(l[3]) !== 'disponivel') return;
           const p = pr.fromLatLngToDivPixel(L.ll[i]), x = p.x - x0, y = p.y - y0;
           if(x < -r || y < -r || x > CW + r || y > CH + r) return;
-          lista.push({L, l, x:p.x, y:p.y});
+          visiveis.push({L, l, x:p.x, y:p.y});
           cores[situacao(l[3])].push([x, y]);
+          if(MODO && condIdDe(RASC, L, l) === MODO.condId) marcados.push([x, y]);
         });
       });
-      visiveis = lista;
-      ['vendido','indisponivel','reservado','disponivel'].map(k => [k, SIT[k].cor]).forEach(([k, cor]) => {
+      ['vendido','indisponivel','definitivo','reservado','disponivel'].forEach(k => {
+        if(!cores[k].length) return;
         ctx.beginPath();
         cores[k].forEach(([x,y]) => { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832); });
-        ctx.fillStyle = cor; ctx.fill();
+        ctx.fillStyle = SIT[k].cor; ctx.fill();
         if(borda){ ctx.lineWidth = borda; ctx.strokeStyle = '#fff'; ctx.stroke(); }
       });
-      if(selected){
-        const i = selected.L.lotes.indexOf(selected.l);
-        if(selected.L.ll){ const p = pr.fromLatLngToDivPixel(selected.L.ll[i]);
-          ctx.beginPath(); ctx.arc(p.x - x0, p.y - y0, r * 1.3, 0, 6.2832);
-          ctx.lineWidth = 3; ctx.strokeStyle = '#0d5d6e'; ctx.stroke(); }
+      if(marcados.length){
+        ctx.beginPath();
+        marcados.forEach(([x,y]) => { ctx.moveTo(x + r * 1.55, y); ctx.arc(x, y, r * 1.55, 0, 6.2832); });
+        ctx.lineWidth = Math.max(2.5, r * .45); ctx.strokeStyle = '#16c25a'; ctx.stroke();
+      }
+      if(selected && !MODO && selected.L.ll){
+        const p = pr.fromLatLngToDivPixel(selected.L.ll[selected.L.lotes.indexOf(selected.l)]);
+        ctx.beginPath(); ctx.arc(p.x - x0, p.y - y0, r * 1.4, 0, 6.2832);
+        ctx.lineWidth = 3; ctx.strokeStyle = '#0d5d6e'; ctx.stroke();
       }
     }
   }
   camada = new Camada(); camada.setMap(map);
 }
 
-function tocarMapa(e){
+function loteNoToque(e){
   const pr = camada && camada.getProjection();
-  if(!pr || !visiveis.length){ closeCard(); return; }
+  if(!pr || !visiveis.length) return null;
   const p = pr.fromLatLngToDivPixel(e.latLng);
   const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, map.getZoom());
   const lim = Math.max(14, 4 / mpp + 4);
   let melhor = null, dm = lim * lim;
   visiveis.forEach(v => { const d = (v.x - p.x) ** 2 + (v.y - p.y) ** 2; if(d < dm){ dm = d; melhor = v; } });
-  if(!melhor){ closeCard(); return; }
-  if(map.getZoom() < 18){ map.setCenter({lat:melhor.l[4], lng:melhor.l[5]}); map.setZoom(19); return; }
-  open(melhor.L, melhor.l);
+  return melhor;
+}
+function tocarMapa(e){
+  const v = loteNoToque(e);
+  if(MODO){ if(v) alternarMarcacao(v.L, v.l); return; }
+  if(!v){ closeCard(); return; }
+  if(map.getZoom() < 17){ map.setCenter({lat:v.l[4], lng:v.l[5]}); map.setZoom(19); return; }
+  open(v.L, v.l);
 }
 
 function draw(){
   if(!map) return;
-  const z = map.getZoom(), vista = map.getBounds(), perto = z >= ZOOM_LOTES;
-  const centro = map.getCenter();
-  const foco = perto ? (LOTEAMENTOS.find(L => L.bounds.contains(centro)) || LOTEAMENTOS.find(L => vista && vista.intersects(L.bounds)) || null) : null;
-  if(foco !== LOT){ LOT = foco; fL.value = LOT ? LOT.id : ''; if(!LOT && selected) closeCard(); cabecalho(); }
-  document.querySelector('.top').style.display = LOT ? '' : 'none';
-  const mostrarPlanta = document.getElementById('fPlanta').checked;
+  const z = map.getZoom(), vista = map.getBounds();
+  if(!MODO){
+    const c = map.getCenter();
+    const foco = LOTEAMENTOS.find(L => emFoco(L, z, vista) && L.bounds.contains(c)) || LOTEAMENTOS.find(L => emFoco(L, z, vista)) || null;
+    if(foco !== LOT){ LOT = foco; if(selected && selected.L !== LOT) closeCard(); cabecalho(); atualizarUrl(); }
+  }
+  $('topo').style.display = LOT && !MODO ? '' : 'none';
+  const mostrarPlanta = $('fPlanta').checked;
   LOTEAMENTOS.forEach(L => {
-    const visivel = perto && vista && vista.intersects(L.bounds);
-    if(L.overlay){ const alvo = visivel && mostrarPlanta ? map : null; if(L.overlay.getMap() !== alvo) L.overlay.setMap(alvo); }
+    if(!L.overlay) return;
+    const alvo = mostrarPlanta && (MODO ? L === MODO.L : emFoco(L, z, vista)) ? map : null;
+    if(L.overlay.getMap() !== alvo) L.overlay.setMap(alvo);
   });
   if(camada) camada.draw();
-  const lista = LOT ? [LOT] : LOTEAMENTOS;
-  const tot = lista.reduce((s,L) => s + L.lotes.length, 0), liv = lista.reduce((s,L) => s + L.lotes.filter(l => l[3] === 0).length, 0);
-  document.getElementById('count').textContent = `${liv} de ${tot} disponíveis`;
+  if(placas) placas.draw();
+  if(LOT){
+    const tot = LOT.lotes.length, liv = LOT.lotes.filter(l => situacao(l[3]) === 'disponivel').length;
+    $('count').textContent = `${liv} de ${tot} disponíveis`;
+  }
 }
 
+/* ----- Card do lote ----- */
+function linkWa(texto){ return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`; }
 function open(LT, l){
-  selected = {L:LT, l}; draw();
+  selected = {L:LT, l}; if(camada) camada.draw();
   const [quadra, num, area, st, lat, lng, pi] = l;
-  const livre = st === 0;
+  const sit = SIT[situacao(st)], livre = situacao(st) === 'disponivel';
   const plano = pi != null ? LT.planos[pi] : null, p = plano ? parsePlano(plano) : null;
-  const ent = entradaDe(LT, plano, l);
+  const ent = entradaDe(LT, l);
   const sm = CONFIG.salarioMinimo;
   const gm = `https://www.google.com/maps?q=${lat},${lng}`;
-  const linhas = [`Me interessei pelo Lote ${num} quadra ${quadra} do ${LT.nome}`];
-  if(ent || p) linhas.push('', '🤩Que está com essa Condição Incrível:👇🏻');
-  if(ent){
-    linhas.push('', '👇🏻ENTRADA À VISTA:', `- ${rs(ent.aVista)}`);
-    if(ent.parcelas) linhas.push('', '👇🏻ENTRADA FACILITADA:', `- Sinal de ${rs(ent.sinal||0)} +${ent.parcelas}x de ${rs(ent.valorParcela)}`);
-  }
+  const ident = `Lote ${num} quadra ${quadra} do ${LT.nome}`;
+  const waConsulta = linkWa(`Qual o valor da entrada parcelada do ${ident}?`);
+  const waAVista = linkWa(`Qual o valor da entrada do ${ident}?`);
+  const botaoConsulta = href => `<a class="btn consulta" href="${href}" target="_blank" rel="noopener">${ICO_CHAT}Consulte com o Corretor</a>`;
+
+  const linhas = [`Me interessei pelo ${ident}`];
+  if(ent.aVista || p) linhas.push('', '🤩Que está com essa Condição Incrível:👇🏻');
+  if(ent.aVista) linhas.push('', '👇🏻ENTRADA À VISTA:', `- ${rs(ent.aVista)}`);
+  if(ent.cond) linhas.push('', '👇🏻ENTRADA FACILITADA:', `- Sinal de ${rs(ent.sinal || 0)} +${ent.parcelas}x de ${rs(ent.valorParcela)}`);
   if(p){
     linhas.push('', '👇🏻PARCELAS:');
     p.fases.forEach((f,i) => {
       if(i) linhas.push('');
       linhas.push(`- ${i?'+':''}${f.n}x de ${salMsg(f)}`, `(${rs(f.val*sm)} hoje)`);
-      if(ent || i) linhas.push(i ? `> Inicia após quitar as ${p.fases[i-1].n}x` : '> Inicia após quitar a entrada');
+      linhas.push(i ? `> Inicia após quitar as ${p.fases[i-1].n}x` : '> Inicia após quitar a entrada');
     });
   }
   linhas.push('', '👇🏼Localização exata do terreno:', `📍${gm}`);
-  const msg = linhas.join('\n');
-  const wa = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
+
   let h = `<div class="grip"></div>
-  <div class="head"><div><h2 id="loteTitulo">Lote ${num}</h2><div class="q">Quadra ${quadra}</div></div>
+  <div class="head"><div><h2 id="loteTitulo">Lote ${esc(num)}</h2><div class="q">Quadra ${esc(quadra)}</div></div>
   <button class="close" aria-label="Fechar" onclick="closeCard()">✕</button></div>
-  <span class="pill" style="background:${SIT[situacao(st)].fundo}"><i style="background:${SIT[situacao(st)].cor}"></i>${SIT[situacao(st)].nome}</span>
-  <div class="area"><b>${area.toLocaleString('pt-BR')} m²</b></div>`;
+  <span class="pill" style="background:${sit.fundo}"><i style="background:${sit.cor}"></i>${sit.nome}</span>
+  <div class="area"><b>${area ? area.toLocaleString('pt-BR') + ' m²' : ''}</b></div>`;
   if(livre){
-    if(ent){
-      h += `<div class="block"><h3>ENTRADA</h3>
-        <div class="row"><span>À vista</span><b>${brl(ent.aVista)}</b></div>
-        ${ent.parcelas ? `<div class="row"><span>Parcelada</span><b>${brl(ent.sinal||0)} de sinal<br>+ ${ent.parcelas}x de ${brl(ent.valorParcela)}</b></div>` : ''}
-      </div>`;
-    }
+    h += `<div class="block"><h3>ENTRADA</h3>
+      <div class="row"><span>À vista</span><b>${ent.aVista ? brl(ent.aVista) : botaoConsulta(waAVista)}</b></div>
+      <div class="row"><span>Parcelada</span><b>${ent.cond ? `${brl(ent.sinal || 0)} de sinal<br>+ ${ent.parcelas}x de ${brl(ent.valorParcela)}` : botaoConsulta(waConsulta)}</b></div>
+    </div>`;
     if(p){
       h += `<div class="block"><h3>PARCELAMENTO</h3>`;
       p.fases.forEach((f,i) => {
@@ -507,49 +616,69 @@ function open(LT, l){
       });
       h += `</div>`;
     }
-    h += `
-      <div class="actions">
-        <a class="btn wa" href="${wa}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
+    h += `<div class="actions">
+        <a class="btn wa" href="${linkWa(linhas.join('\n'))}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
         <a class="btn gm" href="${gm}" target="_blank" rel="noopener">Ver no Google Maps</a>
       </div>
-      <div class="note">Parcela corrigida conforme o salário mínimo vigente. Valores sujeitos a confirmação com o corretor.${ATUALIZADO ? ' Disponibilidade atualizada em ' + ATUALIZADO + '.' : ''}</div>`;
+      <div class="note">Parcela corrigida conforme o salário mínimo vigente. Valores sujeitos a confirmação com o corretor.${ATUALIZADO ? ' Disponibilidade atualizada em ' + esc(ATUALIZADO) + '.' : ''}</div>`;
   } else {
-    h += `<div class="note" style="font-size:.9rem">${situacao(st) === 'reservado' ? 'Este lote está reservado no momento.' : 'Este lote não está disponível.'} Toque numa bolinha cinza para ver as opções livres.</div>`;
+    h += `<div class="note" style="font-size:.9rem">Este lote está como <b>${sit.nome.toLowerCase()}</b>. Toque numa bolinha cinza para ver as opções livres.</div>`;
   }
-  document.getElementById('card').innerHTML = h;
-  document.getElementById('sheet').classList.add('open');
+  $('card').innerHTML = h;
+  $('sheet').classList.add('open');
 }
-function closeCard(){ selected = null; document.getElementById('sheet').classList.remove('open'); draw(); }
+function closeCard(){ if(!selected && !$('sheet').classList.contains('open')) return; selected = null; $('sheet').classList.remove('open'); if(camada) camada.draw(); }
 
+/* ----- Filtros, compartilhar, legenda ----- */
 fL.onchange = () => escolher(fL.value);
 fQ.onchange = () => {
-  draw();
+  if(camada) camada.draw();
   if(!fQ.value || !map || !LOT) return;
   const bb = new google.maps.LatLngBounds();
   LOT.lotes.filter(l => l[0] === fQ.value).forEach(l => bb.extend({lat:l[4], lng:l[5]}));
-  map.fitBounds(bb, 60);
+  map.fitBounds(bb, {top:175, bottom:80, left:30, right:30});
 };
-document.getElementById('fDisp').onchange = draw;
-document.getElementById('fPlanta').onchange = draw;
+$('fDisp').onchange = () => camada && camada.draw();
+$('fPlanta').onchange = draw;
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCard(); });
-/* ===================== PAINEL SECRETO =====================
-   5 toques na legenda → senha → configurações salvas no GitHub (config.json) */
+$('btnShare').onclick = async () => {
+  if(!LOT) return;
+  const url = linkDe(LOT), titulo = LOT.nome + ' | Irineu Imóveis';
+  try {
+    if(navigator.share){ await navigator.share({title: titulo, text: `Veja os lotes do ${LOT.nome}:`, url}); return; }
+  } catch(e){ if(e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast('Link copiado!'); }
+  catch(e){ prompt('Copie o link:', url); }
+};
+$('legenda').innerHTML = Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
+
+/* =====================================================================
+   ÁREA DO CORRETOR — 5 toques na legenda + senha
+   Salva no GitHub (config.json) e vale para todos os clientes.
+   ===================================================================== */
 const SENHA_HASH = '7be3698d8929000ae09da31cf13b704315d383ff34567e2ad7041d9c8c8a7dc3';
-let toques = [], RASC = null;
-const $ = id => document.getElementById(id);
+let RASC = null, alterado = false, editando = null, toques = [];
+const abertos = new Set();
 const fmtN = v => numOk(v) ? v.toLocaleString('pt-BR') : '';
-const lerNum = v => { const t = String(v).trim(); if(!t) return null; const n = Number(t.replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'')); return isFinite(n) ? n : null; };
+const lerNum = v => { const t = String(v == null ? '' : v).trim(); if(!t) return null;
+  const n = Number(t.replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'')); return isFinite(n) && t.replace(/\D/g,'') !== '' ? n : null; };
+const novoId = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const rLot = id => (RASC.lots[id] = RASC.lots[id] || {conds:[], porEntrada:{}, porLote:{}});
+const ordQ = (a,b) => String(a).localeCompare(String(b), 'pt-BR', {numeric:true});
+const msgAdm = (t, cls) => { $('admMsg').className = 'adm-msg ' + (cls || ''); $('admMsg').textContent = t; };
+function marcarAlterado(){ alterado = true; msgAdm('Alterações ainda não salvas.'); }
 
 $('legenda').addEventListener('click', () => {
+  if(MODO) return;
   const t = Date.now(); toques = toques.filter(x => t - x < 3000); toques.push(t);
   if(toques.length >= 5){ toques = []; pedirSenha(); }
 });
-
 async function sha256(t){
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
 }
 function pedirSenha(){
+  if(!LOTEAMENTOS.length) return;
   if(sessionStorage.getItem('adm') === '1') return abrirAdmin();
   $('senhaInp').value = ''; $('senhaErro').textContent = '';
   $('senhaBox').classList.add('open'); setTimeout(() => $('senhaInp').focus(), 50);
@@ -564,156 +693,236 @@ $('senhaOk').onclick = conferirSenha;
 $('senhaCancel').onclick = () => $('senhaBox').classList.remove('open');
 $('senhaInp').addEventListener('keydown', e => { if(e.key === 'Enter') conferirSenha(); });
 
-/* Junta todos os terrenos com a mesma condição (mesmo plano + mesma entrada do Cod.) */
-function montarGrupos(){
-  const g = {};
-  LOTEAMENTOS.forEach(L => L.lotes.forEach(l => {
-    const plano = l[6] != null ? L.planos[l[6]] : null, ent = l[7] || 0, k = grupoKey(plano, ent);
-    const x = g[k] || (g[k] = {k, plano, ent, total:0, livres:0, lots:{}});
-    x.total++; if(l[3] === 0) x.livres++;
-    x.lots[L.id] = (x.lots[L.id] || 0) + 1;
-  }));
-  return Object.values(g).sort((a,b) => b.total - a.total);
-}
-const textoPlano = plano => {
-  const p = plano && parsePlano(plano);
-  return p ? p.fases.map((f,i) => `${i?'+ ':''}${f.n}x de ${f.val < 1 ? Math.round(f.val*100)+'% do' : f.txt} salário`).join(' ') : 'Sem plano no forinvest';
-};
-const resumoEntrada = e => !e ? 'sem entrada definida' : e.parcelas ? `${rs(e.sinal)} + ${e.parcelas}x de ${rs(e.valorParcela)}` : 'sem entrada parcelada';
-const nomeLot = id => (LOTEAMENTOS.find(L => L.id === id) || {nome:id}).nome.replace(/^Loteamento\s+/i,'');
-
-function campo(escopo, id, chave, rotulo, valor, herda){
-  return `<label class="fl">${rotulo}<input class="inp" inputmode="decimal" autocomplete="off"
-    data-e="${escopo}" data-id="${esc(id)}" data-c="${chave}" value="${fmtN(valor)}" placeholder="${herda}"></label>`;
-}
-function previaGrupo(g){
-  return Object.keys(g.lots).map(id => {
-    const L = LOTEAMENTOS.find(x => x.id === id);
-    return `${esc(nomeLot(id))}: <b>${resumoEntrada(calcEntrada(RASC.regras, L, g.plano, g.ent))}</b>`;
-  }).join('<br>');
-}
-function previaLot(L){
-  const r = Object.assign({}, limpo(RASC.regras.geral), limpo(RASC.regras.lot[L.id]));
-  return r.parcelas ? `Sinal ${rs(r.sinal || 0)} + ${r.parcelas}x (a parcela é calculada pela entrada de cada lote)` : 'Sem entrada parcelada';
-}
-
-function abrirAdmin(){
-  RASC = JSON.parse(JSON.stringify({salarioMinimo: CONFIG.salarioMinimo, whatsapp: CONFIG.whatsapp, regras: REGRAS}));
-  RASC.regras.lot = RASC.regras.lot || {}; RASC.regras.grupos = RASC.regras.grupos || {};
-  desenharAdmin();
-  $('admMsg').className = 'adm-msg'; $('admMsg').textContent = 'Nada salvo ainda.';
+function abrirAdmin(manter){
+  if(!manter || !RASC){
+    RASC = {salarioMinimo: CONFIG.salarioMinimo, whatsapp: CONFIG.whatsapp,
+      situacoes: Object.assign({}, REGRAS.situacoes), lots: JSON.parse(JSON.stringify(REGRAS.lots))};
+    alterado = false; editando = null; msgAdm('');
+  }
+  LOTEAMENTOS.forEach(L => rLot(L.id));
+  closeCard(); desenharAdmin();
   $('admin').classList.add('open');
 }
+
+/* ----- contas usadas no painel ----- */
+const disponivel = l => situacao(l[3]) === 'disponivel';
+function pendentes(L){ return L.lotes.filter(l => disponivel(l) && !(condDe(RASC, L, l) && valorParcela(condDe(RASC, L, l), l[7]) > 0)); }
+function usoCond(L, id){ return L.lotes.filter(l => condIdDe(RASC, L, l) === id).length; }
+function listaPendentes(lista){
+  const por = {};
+  lista.forEach(l => (por[l[0]] = por[l[0]] || []).push(l[1]));
+  return Object.keys(por).sort(ordQ).map(q => `<b>Quadra ${esc(q)}:</b> ${por[q].sort(ordQ).map(esc).join(', ')}`).join('<br>');
+}
+
+function formCond(L, c){
+  return `<div class="form" data-form="${esc(L.id)}" data-c="${c ? esc(c.id) : ''}">
+    <div class="flds">
+      <label class="fl">Sinal (R$)<input class="inp" inputmode="decimal" data-f="sinal" value="${c ? fmtN(c.sinal) : ''}" placeholder="ex.: 1.000"></label>
+      <label class="fl">Nº de parcelas<input class="inp" inputmode="numeric" data-f="parcelas" value="${c ? fmtN(c.parcelas) : ''}" placeholder="ex.: 12"></label>
+      <label class="fl">Valor da parcela<input class="inp" inputmode="decimal" data-f="valor" value="${c && numOk(c.valor) ? fmtN(c.valor) : ''}" placeholder="automático"></label>
+    </div>
+    <div class="mini" style="margin-top:6px">Deixe o valor da parcela vazio para calcular sozinho em cada lote: (entrada à vista − sinal) ÷ parcelas.</div>
+    <div class="bb">
+      <button class="btn pri" data-act="salvar-cond">${c ? 'Salvar condição' : 'Criar condição'}</button>
+      <button class="btn sec" data-act="cancel-edit">Cancelar</button>
+      ${c ? '<button class="btn del" data-act="excluir">Excluir</button>' : ''}
+    </div></div>`;
+}
+
 function desenharAdmin(){
-  const G = RASC.regras.geral, grupos = montarGrupos(), temChave = !!localStorage.getItem('gh_token');
-  const filtro = $('admFiltro') ? $('admFiltro').value : '';
+  const scroll = $('admCorpo').scrollTop;
+  const totPend = LOTEAMENTOS.reduce((s, L) => s + pendentes(L).length, 0);
+  const temChave = !!localStorage.getItem('gh_token');
+  const codigos = {};
+  LOTEAMENTOS.forEach(L => L.lotes.forEach(l => { const c = codigos[l[3]] || (codigos[l[3]] = {n:0, ex:null}); c.n++; if(!c.ex) c.ex = `Lote ${l[1]} Quadra ${l[0]} (${L.nome.replace(/^Loteamento\s+/i,'')})`; }));
+
   let h = `
   <div class="sec"><h3>GERAL</h3>
     <div class="flds">
-      <label class="fl">Salário mínimo (R$)<input class="inp" inputmode="decimal" data-e="cfg" data-c="salarioMinimo" value="${fmtN(RASC.salarioMinimo)}"></label>
-      <label class="fl">Seu WhatsApp (55 + DDD + número)<input class="inp" inputmode="tel" data-e="cfg" data-c="whatsapp" value="${esc(RASC.whatsapp)}"></label>
+      <label class="fl">Salário mínimo (R$)<input class="inp" inputmode="decimal" data-cfg="salarioMinimo" value="${fmtN(RASC.salarioMinimo)}"></label>
+      <label class="fl">Seu WhatsApp (55 + DDD + número)<input class="inp" inputmode="tel" data-cfg="whatsapp" value="${esc(RASC.whatsapp)}"></label>
     </div></div>
 
-  <div class="sec"><h3>ENTRADA FACILITADA — REGRA GERAL</h3>
-    <p class="dica">Vale para todos os terrenos. A <b>entrada à vista</b> vem sozinha do <b>Cod.</b> de cada terreno no forinvest. A parcela é calculada assim: (entrada − sinal) ÷ parcelas.</p>
-    <div class="box"><div class="flds">
-      ${campo('geral','', 'sinal', 'Sinal (R$)', G.sinal, 'ex.: 5.000')}
-      ${campo('geral','', 'parcelas', 'Nº de parcelas', G.parcelas, 'ex.: 10')}
-    </div></div></div>
+  <div class="sec"><h3>PENDÊNCIAS</h3>
+    <p class="dica">Lotes <b>disponíveis</b> que ainda não têm entrada parcelada. No site eles mostram o botão <b>Consulte com o Corretor</b>.</p>
+    <div class="box">${totPend ? `<div class="tit">${totPend} lotes pendentes</div><div class="sub">${LOTEAMENTOS.map(L => ({L, n: pendentes(L).length})).filter(x => x.n)
+      .map(x => `<button class="lnkbtn" data-act="ir" data-l="${esc(x.L.id)}">${esc(x.L.nome.replace(/^Loteamento\s+/i,''))} (${x.n})</button>`).join(' · ')}</div>`
+      : '<div class="tit">✓ Nenhuma pendência</div>'}</div></div>
 
-  <div class="sec"><h3>POR LOTEAMENTO</h3>
-    <p class="dica">Só preencha se um loteamento tiver regra diferente da geral. Vazio = usa a geral.</p>
-    ${LOTEAMENTOS.map(L => { const R = RASC.regras.lot[L.id] || {}, proprio = numOk(R.sinal) || numOk(R.parcelas);
-      return `<details class="box"><summary><span><span class="tit">${esc(L.nome)}</span><div class="sub">${proprio ? 'Regra própria' : 'Usa a regra geral'} · ${L.lotes.length} terrenos</div></span></summary>
-        <div class="flds">${campo('lot', L.id, 'sinal', 'Sinal (R$)', R.sinal, 'geral: ' + (fmtN(G.sinal) || '—'))}
-        ${campo('lot', L.id, 'parcelas', 'Nº de parcelas', R.parcelas, 'geral: ' + (fmtN(G.parcelas) || '—'))}</div>
-        <div class="prev" data-prev="lot" data-id="${esc(L.id)}">${previaLot(L)}</div></details>`; }).join('')}
+  <div class="sec"><h3>LOTEAMENTOS</h3>
+    <p class="dica">Em cada loteamento: crie as condições de entrada parcelada e aplique por <b>valor de entrada</b> (todos os lotes com a mesma entrada de uma vez) ou <b>marcando os lotes no mapa</b>.</p>
+    ${LOTEAMENTOS.map(L => {
+      const r = rLot(L.id), pend = pendentes(L);
+      const ents = {};
+      L.lotes.forEach(l => { const k = String(l[7] || 0), e = ents[k] || (ents[k] = {n:0, d:0}); e.n++; if(disponivel(l)) e.d++; });
+      return `<details class="box" data-lot="${esc(L.id)}"${abertos.has(L.id) ? ' open' : ''}>
+        <summary><span><span class="tit">${esc(L.nome)}</span>${pend.length ? `<span class="badge">${pend.length} pendentes</span>` : '<span class="badge ok">completo</span>'}
+          <div class="sub">${L.lotes.length} lotes · ${L.lotes.filter(disponivel).length} disponíveis</div></span></summary>
+
+        <div class="sub2">CONDIÇÕES DE ENTRADA PARCELADA</div>
+        ${r.conds.length ? '' : '<div class="mini">Nenhuma condição criada ainda.</div>'}
+        ${r.conds.map(c => editando === c.id ? formCond(L, c) : `
+          <div class="cond"><div class="cx"><b>${esc(textoCondCurto(c))}</b><span>${usoCond(L, c.id)} lotes usando</span></div>
+            <button class="ico" data-act="edit" data-l="${esc(L.id)}" data-c="${esc(c.id)}" aria-label="Editar condição" title="Editar">✏️</button>
+            <button class="ico marcar" data-act="marcar" data-l="${esc(L.id)}" data-c="${esc(c.id)}">📍 Marcar lotes</button></div>`).join('')}
+        ${editando === 'novo:' + L.id ? formCond(L, null) : `<button class="lnkbtn" data-act="novo" data-l="${esc(L.id)}">+ Nova condição</button>`}
+
+        <div class="sub2">APLICAR POR VALOR DE ENTRADA</div>
+        <div class="mini">Vale para todos os lotes deste loteamento com essa entrada. Lotes marcados no mapa têm prioridade.</div>
+        ${Object.keys(ents).sort((a,b) => a - b).map(k => `
+          <div class="entr"><div class="ex">${+k ? 'Entrada ' + rs(+k) : 'Sem valor no Cód.'}<small>${ents[k].n} lotes · ${ents[k].d} disponíveis</small></div>
+            <select class="inp" data-sel="entrada" data-l="${esc(L.id)}" data-ent="${k}" aria-label="Condição para entrada ${+k ? rs(+k) : 'sem valor'}">
+              <option value="">Consulte com o corretor</option>
+              ${r.conds.map(c => `<option value="${esc(c.id)}"${r.porEntrada[k] === c.id ? ' selected' : ''}>${esc(textoCondCurto(c))}</option>`).join('')}
+            </select></div>`).join('')}
+
+        <div class="sub2">PENDENTES (${pend.length})</div>
+        ${pend.length ? `<div class="pend">${listaPendentes(pend)}</div>` : '<div class="mini">Todos os lotes disponíveis têm entrada parcelada.</div>'}
+      </details>`; }).join('')}
   </div>
 
-  <div class="sec"><h3>GRUPOS DE CONDIÇÕES PARECIDAS</h3>
-    <p class="dica">Terrenos com a <b>mesma entrada</b> e o <b>mesmo parcelamento</b> ficam juntos. Editou um grupo, muda em todos os terrenos dele. Vazio = usa a regra do loteamento ou a geral.</p>
-    <div class="filtro"><select class="inp" id="admFiltro" aria-label="Filtrar por loteamento">
-      <option value="">Todos os loteamentos (${grupos.length} grupos)</option>
-      ${LOTEAMENTOS.map(L => `<option value="${esc(L.id)}"${filtro === L.id ? ' selected' : ''}>${esc(L.nome)}</option>`).join('')}
-    </select></div>
-    ${grupos.filter(g => !filtro || g.lots[filtro]).map(g => { const R = RASC.regras.grupos[g.k] || {};
-      return `<div class="box">
-        <div class="tit">Entrada ${g.ent ? rs(g.ent) : 'sem Cod.'} · ${esc(textoPlano(g.plano))}</div>
-        <div class="sub">${g.total} terrenos (${g.livres} disponíveis) · ${Object.entries(g.lots).map(([id,n]) => `${esc(nomeLot(id))} (${n})`).join(', ')}</div>
-        <div class="flds">
-          ${g.ent ? '' : campo('grupo', g.k, 'aVista', 'Entrada à vista (R$)', R.aVista, 'sem Cod.')}
-          ${campo('grupo', g.k, 'sinal', 'Sinal (R$)', R.sinal, 'herda')}
-          ${campo('grupo', g.k, 'parcelas', 'Nº de parcelas', R.parcelas, 'herda')}
-          ${campo('grupo', g.k, 'valorParcela', 'Valor da parcela', R.valorParcela, 'automático')}
-        </div>
-        <div class="prev" data-prev="grupo" data-id="${esc(g.k)}">${previaGrupo(g)}</div></div>`; }).join('')}
-  </div>
+  <div class="sec"><h3>CORES DAS SITUAÇÕES</h3>
+    <p class="dica">Confira cada exemplo no card do forinvest e escolha a situação que aparece lá.</p>
+    <div class="box">${Object.keys(codigos).sort((a,b) => a - b).map(k => `
+      <div class="sitrow"><div class="ex">Código ${esc(k)} · ${codigos[k].n} lotes<small>ex.: ${esc(codigos[k].ex)}</small></div>
+        <select class="inp" data-sel="sit" data-code="${esc(k)}" aria-label="Situação do código ${esc(k)}">
+          ${Object.entries(SIT).map(([id, s]) => `<option value="${id}"${(RASC.situacoes[k] || SIT_PADRAO[k] || 'indisponivel') === id ? ' selected' : ''}>${s.nome}</option>`).join('')}
+        </select></div>`).join('')}</div></div>
 
   <div class="sec"><h3>CHAVE DE ACESSO DO GITHUB</h3>
     <p class="dica">É ela que permite salvar daqui. Fica guardada só neste aparelho.</p>
     <div class="box">${temChave
-      ? `<div class="tit">✓ Chave salva neste aparelho</div><div class="sub"><button class="lnk" id="admTrocar">Trocar ou remover a chave</button></div>`
+      ? `<div class="tit">✓ Chave salva neste aparelho</div><div class="sub"><button class="lnkbtn" data-act="trocar-chave">Trocar ou remover a chave</button></div>`
       : `<label class="fl">Cole a chave (começa com github_pat_)<input class="inp" id="admToken" autocomplete="off" spellcheck="false"></label>`}
     </div></div>`;
   $('admCorpo').innerHTML = h;
-  $('admFiltro').onchange = desenharAdmin;
-  if($('admTrocar')) $('admTrocar').onclick = () => { localStorage.removeItem('gh_token'); desenharAdmin(); };
+  $('admCorpo').scrollTop = scroll;
 }
+
+$('admCorpo').addEventListener('toggle', e => {
+  const d = e.target; if(!d.dataset || !d.dataset.lot) return;
+  d.open ? abertos.add(d.dataset.lot) : abertos.delete(d.dataset.lot);
+}, true);
 
 $('admCorpo').addEventListener('input', e => {
-  const el = e.target; if(!el.dataset || !el.dataset.e) return;
-  const {e: esc0, id, c} = el.dataset, v = el.value;
-  if(esc0 === 'cfg'){ RASC[c] = c === 'whatsapp' ? v.replace(/\D/g,'') : lerNum(v); return; }
-  const alvo = esc0 === 'geral' ? RASC.regras.geral
-    : esc0 === 'lot' ? (RASC.regras.lot[id] = RASC.regras.lot[id] || {})
-    : (RASC.regras.grupos[id] = RASC.regras.grupos[id] || {});
-  const n = lerNum(v);
-  if(n == null) delete alvo[c]; else alvo[c] = c === 'parcelas' ? Math.round(n) : n;
-  // atualiza as prévias sem redesenhar (o cursor continua no campo)
-  const grupos = montarGrupos();
-  document.querySelectorAll('#admCorpo [data-prev="grupo"]').forEach(p => { const g = grupos.find(x => x.k === p.dataset.id); if(g) p.innerHTML = previaGrupo(g); });
-  document.querySelectorAll('#admCorpo [data-prev="lot"]').forEach(p => { const L = LOTEAMENTOS.find(x => x.id === p.dataset.id); if(L) p.innerHTML = previaLot(L); });
-  $('admMsg').className = 'adm-msg'; $('admMsg').textContent = 'Alterações não salvas.';
+  const k = e.target.dataset && e.target.dataset.cfg; if(!k) return;
+  RASC[k] = k === 'whatsapp' ? e.target.value.replace(/\D/g,'') : lerNum(e.target.value);
+  marcarAlterado();
 });
 
-function limparRegras(r){
-  const tira = o => Object.fromEntries(Object.entries(o||{}).map(([k,v]) => [k, limpo(v)]).filter(([,v]) => Object.keys(v).length));
-  return {geral: limpo(r.geral), lot: tira(r.lot), grupos: tira(r.grupos)};
-}
-function b64(s){ let bin = ''; new TextEncoder().encode(s).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
+$('admCorpo').addEventListener('change', e => {
+  const s = e.target; if(!s.dataset || !s.dataset.sel) return;
+  if(s.dataset.sel === 'entrada'){
+    const r = rLot(s.dataset.l);
+    if(s.value) r.porEntrada[s.dataset.ent] = s.value; else delete r.porEntrada[s.dataset.ent];
+  } else if(s.dataset.sel === 'sit'){
+    RASC.situacoes[s.dataset.code] = s.value;
+  }
+  marcarAlterado(); desenharAdmin();
+});
 
+$('admCorpo').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act;
+  if(act === 'ir'){
+    abertos.add(b.dataset.l); desenharAdmin();
+    const d = $('admCorpo').querySelector(`details[data-lot="${CSS.escape(b.dataset.l)}"]`);
+    if(d) d.scrollIntoView({block:'start', behavior:'smooth'});
+  } else if(act === 'edit'){ editando = b.dataset.c; desenharAdmin(); }
+  else if(act === 'novo'){ editando = 'novo:' + b.dataset.l; desenharAdmin(); }
+  else if(act === 'cancel-edit'){ editando = null; desenharAdmin(); }
+  else if(act === 'salvar-cond'){
+    const f = b.closest('.form'), lid = f.dataset.form, cid = f.dataset.c;
+    const v = n => lerNum(f.querySelector(`[data-f="${n}"]`).value);
+    const sinal = v('sinal') || 0, parcelas = Math.round(v('parcelas') || 0), valor = v('valor');
+    if(!(parcelas > 0)){ msgAdm('Informe o número de parcelas da entrada.', 'err'); return; }
+    const r = rLot(lid);
+    if(cid){ Object.assign(r.conds.find(c => c.id === cid), {sinal, parcelas, valor: valor > 0 ? valor : null}); editando = null; marcarAlterado(); desenharAdmin(); }
+    else {
+      const nova = {id: novoId(), sinal, parcelas, valor: valor > 0 ? valor : null};
+      r.conds.push(nova); editando = null; marcarAlterado(); desenharAdmin();
+      msgAdm('Condição criada. Agora aplique por valor de entrada ou toque em "Marcar lotes".');
+    }
+  } else if(act === 'excluir'){
+    const f = b.closest('.form'), lid = f.dataset.form, cid = f.dataset.c, r = rLot(lid);
+    if(!confirm('Excluir esta condição? Os lotes que usam ela voltam para "Consulte com o corretor".')) return;
+    r.conds = r.conds.filter(c => c.id !== cid);
+    Object.keys(r.porEntrada).forEach(k => { if(r.porEntrada[k] === cid) delete r.porEntrada[k]; });
+    Object.keys(r.porLote).forEach(k => { if(r.porLote[k] === cid) delete r.porLote[k]; });
+    editando = null; marcarAlterado(); desenharAdmin();
+  } else if(act === 'marcar'){ entrarModo(b.dataset.l, b.dataset.c); }
+  else if(act === 'trocar-chave'){ localStorage.removeItem('gh_token'); desenharAdmin(); }
+});
+
+/* ----- Marcar lotes no mapa ----- */
+function entrarModo(lid, cid){
+  const L = LOTEAMENTOS.find(x => x.id === lid); if(!L) return;
+  MODO = {L, condId: cid, copia: JSON.stringify(rLot(lid))};
+  $('admin').classList.remove('open'); closeCard();
+  $('selbar').classList.add('on'); atualizarSelbar();
+  map.fitBounds(L.bounds, {top:20, bottom:150, left:16, right:16});
+  draw();
+}
+function atualizarSelbar(){
+  const c = rLot(MODO.L.id).conds.find(x => x.id === MODO.condId);
+  $('selT1').textContent = `${MODO.L.nome.replace(/^Loteamento\s+/i,'')}: ${c ? textoCondCurto(c) : ''}`;
+  $('selT2').textContent = `${usoCond(MODO.L, MODO.condId)} lotes marcados (contorno verde). Toque nos lotes para marcar ou desmarcar.`;
+}
+function alternarMarcacao(L, l){
+  const r = rLot(L.id), k = chaveLote(l), ent = String(l[7] || 0), id = MODO.condId;
+  if(condIdDe(RASC, L, l) === id){
+    if(r.porEntrada[ent] === id) r.porLote[k] = '-'; else delete r.porLote[k];
+  } else {
+    if(r.porEntrada[ent] === id) delete r.porLote[k]; else r.porLote[k] = id;
+  }
+  alterado = true; atualizarSelbar(); camada.draw();
+}
+function sairModo(){ MODO = null; $('selbar').classList.remove('on'); draw(); abrirAdmin(true); }
+$('selCancel').onclick = () => { RASC.lots[MODO.L.id] = JSON.parse(MODO.copia); sairModo(); };
+$('selOk').onclick = () => { sairModo(); salvarAdmin(); };
+
+/* ----- Salvar no GitHub ----- */
+function b64(s){ let bin = ''; new TextEncoder().encode(s).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
+function pacote(){
+  const lots = {};
+  Object.entries(RASC.lots).forEach(([id, r]) => {
+    const porLote = Object.fromEntries(Object.entries(r.porLote).filter(([,v]) => v === '-' || r.conds.some(c => c.id === v)));
+    const porEntrada = Object.fromEntries(Object.entries(r.porEntrada).filter(([,v]) => r.conds.some(c => c.id === v)));
+    if(r.conds.length || Object.keys(porLote).length) lots[id] = {conds: r.conds, porEntrada, porLote};
+  });
+  return {salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, situacoes: RASC.situacoes, lots, salvoEm: new Date().toISOString()};
+}
 async function salvarAdmin(){
-  const msg = (t, cls) => { $('admMsg').className = 'adm-msg ' + (cls||''); $('admMsg').textContent = t; };
-  if(!(RASC.salarioMinimo > 0)) return msg('Confira o valor do salário mínimo.', 'err');
-  if(String(RASC.whatsapp).length < 12) return msg('Confira o WhatsApp: 55 + DDD + número.', 'err');
+  if(!(RASC.salarioMinimo > 0)) return msgAdm('Confira o valor do salário mínimo.', 'err');
+  if(String(RASC.whatsapp).length < 12) return msgAdm('Confira o WhatsApp: 55 + DDD + número.', 'err');
   const token = localStorage.getItem('gh_token') || ($('admToken') ? $('admToken').value.trim() : '');
-  if(!token) return msg('Cole a chave do GitHub no fim da página para poder salvar.', 'err');
-  const conteudo = {salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, regras: limparRegras(RASC.regras), salvoEm: new Date().toISOString()};
+  if(!token){ msgAdm('Cole a chave do GitHub no fim da página para poder salvar.', 'err'); return; }
+  const conteudo = pacote();
   const url = `https://api.github.com/repos/${CONFIG.repo}/contents/config.json`;
   const head = {Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json'};
-  $('admSalvar').disabled = true; msg('Salvando…');
+  $('admSalvar').disabled = true; $('selOk').disabled = true; msgAdm('Salvando…');
   try {
     const g = await fetch(url + '?ref=main&t=' + Date.now(), {headers: head, cache: 'no-store'});
     if(g.status === 401 || g.status === 403){ localStorage.removeItem('gh_token'); desenharAdmin(); throw new Error('Chave do GitHub inválida ou sem permissão. Cole uma chave nova.'); }
     const sha = g.ok ? (await g.json()).sha : undefined;
-    const body = {message: 'Condições atualizadas pelo painel', content: b64(JSON.stringify(conteudo, null, 1)), branch: 'main'};
+    const body = {message: 'Condições atualizadas pela Área do corretor', content: b64(JSON.stringify(conteudo, null, 1)), branch: 'main'};
     if(sha) body.sha = sha;
     const r = await fetch(url, {method: 'PUT', headers: Object.assign({'Content-Type': 'application/json'}, head), body: JSON.stringify(body)});
     if(r.status === 401 || r.status === 403){ localStorage.removeItem('gh_token'); desenharAdmin(); throw new Error('A chave não tem permissão de escrita neste repositório.'); }
+    if(r.status === 409 || r.status === 422) throw new Error('O arquivo mudou enquanto você editava. Toque em Salvar de novo.');
     if(!r.ok) throw new Error('O GitHub recusou (erro ' + r.status + '). Tente de novo em instantes.');
     localStorage.setItem('gh_token', token);
-    aplicarConfig(conteudo);
-    if(selected) open(selected.L, selected.l);
-    desenharAdmin();
-    msg('✓ Salvo! Para você já vale agora; para os clientes, em até 5 minutos.', 'ok');
+    aplicarConfig(conteudo); alterado = false;
+    desenharAdmin(); draw();
+    msgAdm('✓ Salvo! Para você já vale agora; para os clientes, em até 5 minutos.', 'ok');
   } catch(e){
-    msg(e.message && !/fetch/i.test(e.message) ? e.message : 'Sem conexão com o GitHub. Verifique a internet e tente de novo.', 'err');
-  } finally { $('admSalvar').disabled = false; }
+    msgAdm(e.message && !/fetch|network/i.test(e.message) ? e.message : 'Sem conexão com o GitHub. Verifique a internet e tente de novo.', 'err');
+  } finally { $('admSalvar').disabled = false; $('selOk').disabled = false; }
 }
 $('admSalvar').onclick = salvarAdmin;
 $('admFechar').onclick = () => {
-  if(/não salvas/.test($('admMsg').textContent) && !confirm('Fechar sem salvar as alterações?')) return;
-  $('admin').classList.remove('open');
+  if(alterado && !confirm('Fechar sem salvar as alterações?')) return;
+  alterado = false; RASC = null; $('admin').classList.remove('open');
 };
 
 (function(){ const s = document.createElement('script');

@@ -31,6 +31,16 @@ def rm(s):
     try: return json.loads(gzip.decompress(base64.b64decode(s)).decode())
     except Exception: return {}
 
+def ler_entrada(v):
+    """Cod. do forinvest → entrada em reais. 16.0 = R$ 16.000"""
+    t = re.sub(r"[^\d.,]", "", str(v or ""))
+    if not t: return None
+    if "," in t: t = t.replace(".", "").replace(",", ".")
+    try: n = float(t)
+    except ValueError: return None
+    if n <= 0: return None
+    return round(n * 1000) if n < 1000 else round(n)
+
 def achar_dict(o, chave):
     """Acha o primeiro bloco da resposta que tenha essa informação preenchida."""
     if isinstance(o, dict):
@@ -51,6 +61,9 @@ def indice_unidades(o, idx):
             atual = idx.setdefault(uid, {})
             for k in ("latitude", "longitude", "internalCode"):
                 if o.get(k) not in (None, "") and not atual.get(k): atual[k] = o[k]
+            if not atual.get("internalCode") and o.get("rmCompressedData"):
+                cod = rm(o["rmCompressedData"]).get("InternalCode")
+                if cod not in (None, ""): atual["internalCode"] = cod
         for v in o.values(): indice_unidades(v, idx)
     elif isinstance(o, list):
         for v in o: indice_unidades(v, idx)
@@ -63,7 +76,7 @@ def montar(offer, item):
     info = rm(of.get("rmCompressedData")) if of else {}
     planos, lotes, sem_local = [], [], []
     for u in unidades:
-        tp = u["tabPrices"][0] if u.get("tabPrices") else None
+        tp = u["tabPrices"][-1] if u.get("tabPrices") else None  # vale a última linha da tabela
         info_u = idx.get(u["id"], {})
         try: lat, lng = float(info_u.get("latitude")), float(info_u.get("longitude"))
         except (TypeError, ValueError): lat = lng = 0
@@ -79,8 +92,7 @@ def montar(offer, item):
         q = re.sub(r"^QUADRA\s+", "", (u.get("plantDescription") or "").strip(), flags=re.I)
         try: num = str(int(u["unitNumber"]))
         except Exception: num = str(u.get("unitNumber"))
-        try: entrada = round(float(str(info_u.get("internalCode") or "").replace(",", ".")) * 1000)
-        except ValueError: entrada = None
+        entrada = ler_entrada(info_u.get("internalCode"))
         lotes.append([q, num, u.get("area") or 0, u.get("status"), round(float(lat), 7), round(float(lng), 7), pi, entrada or None])
     if sem_local: print("  AVISO:", len(sem_local), "lotes sem localização no forinvest:", ", ".join(sem_local[:20]))
     lotes.sort(key=lambda l: (l[0], int(l[1]) if l[1].isdigit() else 0))
@@ -116,6 +128,15 @@ def main():
         except Exception as e:
             print("ERRO em", item.get("id"), e)
     if not saida: sys.exit("Nenhum loteamento baixado.")
+    if os.path.exists("index.html"):
+        pagina = open("index.html", encoding="utf-8").read()
+        for item in lista:
+            pasta = re.sub(r"[^a-z0-9-]", "", item["id"].lower())
+            if not pasta: continue
+            os.makedirs(pasta, exist_ok=True)
+            destino = os.path.join(pasta, "index.html")
+            if not os.path.exists(destino) or open(destino, encoding="utf-8").read() != pagina:
+                open(destino, "w", encoding="utf-8").write(pagina)
     agora = datetime.now(timezone(timedelta(hours=-3))).strftime("%d/%m/%Y %H:%M")
     novo = {"atualizado": agora, "loteamentos": saida}
     try:
