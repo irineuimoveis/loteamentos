@@ -1,0 +1,22 @@
+{
+ "salarioMinimo": 1621,
+ "whatsapp": "5547992422059",
+ "situacoes": {},
+ "lots": {
+  "pereque": {
+   "conds": [
+    {
+     "id": "cmw5ggx91b49",
+     "sinal": 5000,
+     "parcelas": 12,
+     "valor": 2084
+    }
+   ],
+   "porEntrada": {
+    "35000": "cmw5ggx91b49"
+   },
+   "porLote": {}
+  }
+ },
+ "salvoEm": "2026-11-06T21:15:06.279Z"
+}
