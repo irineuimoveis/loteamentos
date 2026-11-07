@@ -1,0 +1,4 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><title>Mapa dos lotes | Irineu Imóveis</title><style>body{margin:0;background:#1d2b1c}</style></head><body><script>
+fetch('../?v=' + Date.now(), {cache: 'no-store'}).then(function(r){ return r.text(); }).then(function(t){ document.open(); document.write(t); document.close(); })
+  .catch(function(){ location.href = '../?l=' + location.pathname.split('/').filter(Boolean).pop() + location.search.replace('?', '&'); });
+</script></body></html>
