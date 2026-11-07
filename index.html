@@ -339,13 +339,18 @@ body.modo #cantoEsq .chat{display:none}
 .selchip button{border:0;background:#d93636;color:#fff;width:26px;height:26px;border-radius:50%;font-size:.8rem;cursor:pointer;display:grid;place-items:center}
 .sc-pino{width:12px;height:17px;background:#d93636;clip-path:path('M6 0C2.7 0 0 2.6 0 5.8c0 4.3 5.2 11.4 5.6 11.9.2.3.6.3.8 0C6.8 17.2 12 10.1 12 5.8 12 2.6 9.3 0 6 0z')}
 #fDestacar.on{background:#d93636;color:#fff;border-color:#d93636}
+.ttl-t{flex:1;min-width:0;display:flex;flex-direction:column}
+.ttl-t .count{margin-left:0;padding-left:0;font-size:.74rem;line-height:1.2}
+.print-fora{position:fixed;left:-10000px;top:0;pointer-events:none}
+.print-card{position:static;width:390px;max-height:none !important;overflow:visible !important;border-radius:18px;padding:16px 18px 14px !important;box-shadow:none}
+.print-card .pc-rod{margin-top:12px;font-size:.72rem;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
 <div id="map"></div>
 
 <div class="top" id="topo" style="display:none"><div class="bar">
-  <div class="ttl"><h1 id="nome"></h1><span class="count" id="count"></span>
+  <div class="ttl"><div class="ttl-t"><h1 id="nome"></h1><span class="count" id="count"></span></div>
     <button class="share" id="btnShare" aria-label="Compartilhar o link deste loteamento" title="Compartilhar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
     </button></div>
@@ -355,7 +360,7 @@ body.modo #cantoEsq .chat{display:none}
     <select id="fQuadra" aria-label="Filtrar por quadra" hidden></select>
     <button class="chip" id="fBarato" aria-pressed="false" hidden>⭐ Mais facilitados</button>
     <button class="chip" id="fDestacar" aria-pressed="false">📍 Destacar disponíveis</button>
-    <label class="chip"><input type="checkbox" id="fDisp"> Só disponíveis</label>
+    <input type="checkbox" id="fDisp" hidden>
     <label class="chip"><input type="checkbox" id="fPlanta" checked> Planta</label>
   </div>
 </div></div>
@@ -630,6 +635,7 @@ function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('
    ===================================================================== */
 let FACIL = null;   // {L, set} lotes mais facilitados em destaque
 let zoomEstavel = null;
+let camadaPlanta = null, plantaLigada = false;
 let FIXOS = [];          // lotes marcados com alfinete (link compartilhado ou apertar e segurar)
 let DESTACAR = false;    // alfinete em todos os disponíveis do loteamento
 let ignorarClique = 0;
@@ -657,19 +663,19 @@ async function initMap(){
     $('cidade').textContent = 'Verifique a internet e recarregue a página.'; return;
   }
   map = new google.maps.Map($('map'), {
-    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:10, isFractionalZoomEnabled:false, backgroundColor:'#1d2b1c', mapTypeId:'hybrid', tilt:0,
+    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:10, maxZoom:19, disableDoubleClickZoom:true, keyboardShortcuts:false, isFractionalZoomEnabled:false, backgroundColor:'#1d2b1c', mapTypeId:'hybrid', tilt:0,
     streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy', mapTypeControl:false
   });
   LOTEAMENTOS.forEach(L => {
     L.bounds = limitesDe(L);
-    if(L.planta) L.overlay = new google.maps.GroundOverlay(/^https?:/i.test(L.planta.url) ? L.planta.url : BASE + L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
+    if(L.planta && !L.planta.ladrilhos) L.overlay = new google.maps.GroundOverlay(/^https?:/i.test(L.planta.url) ? L.planta.url : BASE + L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
       {lat:L.planta.limites[0][0], lng:L.planta.limites[0][1]}, {lat:L.planta.limites[1][0], lng:L.planta.limites[1][1]}) : L.bounds, {opacity:.92, clickable:false});
   });
   const area = new google.maps.LatLngBounds({lat:-27.20, lng:-49.40}, {lat:-25.90, lng:-48.30}); // norte de SC (Joinville, Araquari, Barra do Sul, Itajaí)
   LOTEAMENTOS.forEach(L => area.union(L.bounds));
   const ne = area.getNorthEast(), sw = area.getSouthWest();
   map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.04, south:sw.lat()-.04, east:ne.lng()+.04, west:sw.lng()-.04}, strictBounds:false}});
-  criarPlacas(); criarCamada();
+  criarPlacas(); criarCamada(); camadaPlanta = criarLadrilhos();
   fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${esc(L.id)}">${esc(L.nome)}</option>`).join('');
   map.addListener('click', tocarMapa);
   map.addListener('idle', () => { zoomEstavel = map.getZoom(); draw(); });
@@ -783,7 +789,10 @@ function criarPlacas(){
           el.onclick = () => escolher(L.id);
         } else {
           el.innerHTML = svgPlaca(`${g.itens.length} loteamentos aqui`); el.setAttribute('aria-label', `${g.itens.length} loteamentos aqui, aproximar`);
-          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); enquadrar(b, {top:70, bottom:60, left:24, right:24}); };
+          el.onclick = () => {
+            const lat = g.itens.reduce((s, o) => s + o.L.centro[0], 0) / g.itens.length, lng = g.itens.reduce((s, o) => s + o.L.centro[1], 0) / g.itens.length;
+            zoomEstavel = null; map.panTo({lat, lng}); map.setZoom(Math.min(map.getZoom() + 2, ZOOM_LOTES - 1));
+          };
         }
         el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.onclick(); } };
         google.maps.OverlayView.preventMapHitsAndGesturesFrom(el);
@@ -813,7 +822,7 @@ function criarCamada(){
       const z = map.getZoom(); visiveis = [];
       const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, z);
       const r = Math.max(2, 4 / mpp), borda = z >= 18 ? 1.5 : z >= 17 ? .8 : 0;
-      const only = $('fDisp').checked, q = LOT ? fQ.value : '';
+      const only = DESTACAR, q = LOT ? fQ.value : '';
       const cores = {}; Object.keys(SIT).forEach(k => cores[k] = []);
       const marcados = [];
       LOTEAMENTOS.forEach(L => {
@@ -846,8 +855,7 @@ function criarCamada(){
       }
       // alfinetes: poucos lotes na tela (menos de 10), "Destacar disponíveis" e lotes selecionados
       const naTela = visiveis.filter(v => v.naTela);
-      const poucos = !MODO && naTela.length > 0 && naTela.length < 10;
-      visiveis.forEach(v => v.pino = !MODO && v.naTela && (poucos || (DESTACAR && v.L === LOT && situacao(v.l[3]) === 'disponivel')));
+      visiveis.forEach(v => v.pino = !MODO && v.naTela && DESTACAR && situacao(v.l[3]) === 'disponivel');
       FIXOS.forEach(f => {                      // selecionados aparecem em qualquer zoom
         let v = visiveis.find(x => x.l === f.l);
         if(!v){
@@ -916,8 +924,9 @@ function draw(){
   document.body.classList.toggle('modo', !!MODO);
   atualizarSelChip();
   const mostrarPlanta = $('fPlanta').checked;
+  ligarLadrilhos(mostrarPlanta);
   LOTEAMENTOS.forEach(L => {
-    if(!L.overlay) return;
+    if(!L.overlay) return;   // (plantas em pedaços são tratadas em mostrarPlanta)
     const alvo = mostrarPlanta && (MODO ? L === MODO.L : emFoco(L, z, vista)) ? map : null;
     if(L.overlay.getMap() !== alvo) L.overlay.setMap(alvo);
   });
@@ -936,6 +945,36 @@ function primeiroVencimento(hoje = new Date()){
   const ano = d.getFullYear() !== hoje.getFullYear() ? ' de ' + d.getFullYear() : '';
   return {longo: `20 de ${mes}${ano}`, curto: `20/${String(d.getMonth() + 1).padStart(2,'0')}/${d.getFullYear()}`};
 }
+/* ----- Planta em pedaços: o celular só baixa os quadradinhos que estão na tela ----- */
+function pxMerc(lat, lng, z){
+  const n = 256 * Math.pow(2, z), s = Math.sin(lat * Math.PI / 180);
+  return {x: (lng + 180) / 360 * n, y: (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * n};
+}
+function criarLadrilhos(){
+  const faixas = LOTEAMENTOS.filter(L => L.planta && L.planta.ladrilhos).map(L => {
+    const [[s, w], [n, e]] = L.planta.limites, lad = L.planta.ladrilhos, r = {};
+    for(let z = lad.zmin; z <= lad.zmax; z++){
+      const a = pxMerc(n, w, z), b = pxMerc(s, e, z);
+      r[z] = [Math.floor(a.x / 256), Math.floor(a.y / 256), Math.floor(b.x / 256), Math.floor(b.y / 256)];
+    }
+    return {r, base: lad.base};
+  });
+  if(!faixas.length) return null;
+  return new google.maps.ImageMapType({
+    tileSize: new google.maps.Size(256, 256), opacity: .92, name: 'plantas',
+    getTileUrl: (c, z) => {
+      for(const f of faixas){ const q = f.r[z]; if(q && c.x >= q[0] && c.x <= q[2] && c.y >= q[1] && c.y <= q[3]) return `${BASE}${f.base}/${z}/${c.x}/${c.y}.webp`; }
+      return null;
+    }
+  });
+}
+function ligarLadrilhos(ligar){
+  if(!camadaPlanta || ligar === plantaLigada) return;
+  plantaLigada = ligar;
+  if(ligar) map.overlayMapTypes.push(camadaPlanta);
+  else { const i = map.overlayMapTypes.getArray().indexOf(camadaPlanta); if(i >= 0) map.overlayMapTypes.removeAt(i); }
+}
+
 /* ----- Lotes selecionados (alfinete fixo) ----- */
 function atualizarSelChip(){
   const c = $('selChip');
@@ -986,12 +1025,41 @@ $('fDestacar').onclick = () => {
 
 /* Enviar para alguém: link que abre direto neste lote */
 function linkLote(L, l){ return `${linkDe(L)}/?quadra=${encodeURIComponent(l[0])}&lote=${encodeURIComponent(l[1])}`; }
+/* Imagem das condições do lote (vai junto quando envia para alguém) */
+let imgCard = null;   // {l, promessa}
+function prepararImagem(LT, l){
+  if(imgCard && imgCard.l === l) return imgCard.promessa;
+  const promessa = (async () => {
+    await carregarScript('https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js');
+    const box = document.createElement('div');
+    box.className = 'card print-card';
+    box.innerHTML = montarCard(LT, l);
+    box.querySelectorAll('.grip,.close,.btn.enviar,.actions,.note,.btn.consulta').forEach(e => e.remove());
+    box.insertAdjacentHTML('beforeend', `<div class="pc-rod">${esc(LT.nome)} · irineuimoveis.github.io/loteamentos</div>`);
+    const fora = document.createElement('div'); fora.className = 'print-fora'; fora.appendChild(box); document.body.appendChild(fora);
+    try {
+      const fundo = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#fff';
+      const blob = await window.htmlToImage.toBlob(box, {pixelRatio: 2, skipFonts: true, backgroundColor: fundo, cacheBust: true});
+      return new File([blob], `lote-${l[1]}-quadra-${l[0]}.png`.replace(/\s+/g, '-'), {type: 'image/png'});
+    } finally { fora.remove(); }
+  })().catch(() => null);
+  imgCard = {l, promessa};
+  return promessa;
+}
+/* Enviar para alguém: imagem das condições + link que abre direto neste lote */
 async function enviarLote(L, l){
   const url = linkLote(L, l);
-  const texto = `${url}\n\nOlha esse terreno: Lote ${l[1]} · Quadra ${l[0]} do ${L.nome} 🏡`;
-  try {
-    if(navigator.share){ await navigator.share({title: `Lote ${l[1]} · Quadra ${l[0]}`, text: texto}); return; }
-  } catch(e){ if(e && e.name === 'AbortError') return; }
+  const texto = `${url}\n\nLote ${l[1]} · Quadra ${l[0]} do ${L.nome} 🏡`;
+  const arquivo = await Promise.race([prepararImagem(L, l), new Promise(ok => setTimeout(() => ok(null), 2500))]);
+  if(navigator.share){
+    try {
+      if(arquivo && navigator.canShare && navigator.canShare({files: [arquivo]})){ await navigator.share({files: [arquivo], text: texto}); return; }
+      await navigator.share({text: texto}); return;
+    } catch(e){
+      if(e && e.name === 'AbortError') return;
+      try { await navigator.share({text: texto}); return; } catch(e2){ if(e2 && e2.name === 'AbortError') return; }
+    }
+  }
   try { await navigator.clipboard.writeText(url); toast('Link do lote copiado!'); } catch(e){}
   window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
 }
@@ -1003,7 +1071,7 @@ function abrirLoteDoLink(L){
   if(!l) return false;
   fixar(L, l, true);
   zoomEstavel = null;
-  map.setCenter({lat: l[4], lng: l[5]}); map.setZoom(20);
+  map.setCenter({lat: l[4], lng: l[5]}); map.setZoom(19);
   google.maps.event.addListenerOnce(map, 'idle', () => {
     open(L, l);
     setTimeout(() => { const h = $('sheet').offsetHeight || 0; map.panBy(0, Math.round(h / 2)); }, 350);
@@ -1100,6 +1168,7 @@ function open(LT, l){
   selected = {L:LT, l}; if(camada) camada.draw();
   $('card').innerHTML = montarCard(LT, l);
   $('sheet').classList.add('open');
+  if(situacao(l[3]) === 'disponivel') setTimeout(() => prepararImagem(LT, l), 400);
 }
 function closeCard(){ if(!selected && !$('sheet').classList.contains('open')) return; selected = null; $('sheet').classList.remove('open'); if(camada) camada.draw(); }
 

@@ -1,6 +1,6 @@
 """Robô que baixa os lotes do forinvest e gera o data.json do mapa.
 Roda sozinho no GitHub Actions. Usuário e senha ficam nos Secrets do GitHub."""
-import base64, gzip, hashlib, io, json, os, re, sys, urllib.request
+import base64, gzip, hashlib, io, json, math, os, re, shutil, sys, urllib.request
 from datetime import datetime, timezone, timedelta
 
 BASE = "https://irineuimoveis-be.forinvest.com.br/api/"
@@ -69,7 +69,59 @@ def indice_unidades(o, idx):
         for v in o: indice_unidades(v, idx)
     return idx
 
+# Página de cada loteamento (/loteamentos/<id>/): só carrega o site principal, então nunca fica desatualizada
+CASCA = """<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><title>Mapa dos lotes | Irineu Imóveis</title><style>body{margin:0;background:#1d2b1c}</style></head><body><script>
+fetch('../?v=' + Date.now(), {cache: 'no-store'}).then(function(r){ return r.text(); }).then(function(t){ document.open(); document.write(t); document.close(); })
+  .catch(function(){ location.href = '../?l=' + location.pathname.split('/').filter(Boolean).pop() + location.search.replace('?', '&'); });
+</script></body></html>
+"""
+
 LADO_MAX = 4096   # maior lado da planta em pixels (limite seguro para celulares)
+
+Z_MIN, Z_MAX = 13, 19   # níveis de zoom em que a planta aparece em pedaços
+
+def _px(lat, lng, z):
+    """Coordenada em pixels do mapa (Web Mercator) no zoom z."""
+    n = 256 * 2 ** z
+    s = math.sin(math.radians(lat))
+    return (lng + 180) / 360 * n, (0.5 - math.log((1 + s) / (1 - s)) / (4 * math.pi)) * n
+
+def gerar_ladrilhos(img, limites, pasta, ver):
+    """Fatia a planta em quadradinhos de 256 px por nível de zoom (igual ao Google Maps).
+    O celular só baixa os pedaços que estão na tela, no tamanho certo para o zoom: fica leve e nítido."""
+    from PIL import Image
+    destino = f"{pasta}/{ver}"
+    if os.path.isdir(destino) and any(os.scandir(destino)): return
+    if os.path.isdir(pasta):
+        for d in os.listdir(pasta):
+            if d != ver: shutil.rmtree(os.path.join(pasta, d), ignore_errors=True)
+    lado = 8192
+    if max(img.size) > lado:
+        k = lado / max(img.size); img = img.resize((round(img.size[0] * k), round(img.size[1] * k)), Image.LANCZOS)
+    rgba = img.convert("RGBA")
+    W, H = rgba.size
+    (s, w), (n, e) = limites
+    total = 0
+    for z in range(Z_MIN, Z_MAX + 1):
+        x0, y0 = _px(n, w, z); x1, y1 = _px(s, e, z)
+        sx, sy = (x1 - x0) / W, (y1 - y0) / H          # pixels do mapa por pixel da imagem
+        for tx in range(int(x0 // 256), int(x1 // 256) + 1):
+            for ty in range(int(y0 // 256), int(y1 // 256) + 1):
+                # área do ladrilho na imagem
+                ax0, ay0 = (tx * 256 - x0) / sx, (ty * 256 - y0) / sy
+                ax1, ay1 = ((tx + 1) * 256 - x0) / sx, ((ty + 1) * 256 - y0) / sy
+                cx0, cy0, cx1, cy1 = max(0, ax0), max(0, ay0), min(W, ax1), min(H, ay1)
+                if cx1 <= cx0 or cy1 <= cy0: continue
+                # onde esse recorte cai dentro do ladrilho
+                dx0, dy0 = round((cx0 - ax0) * sx), round((cy0 - ay0) * sy)
+                dw, dh = max(1, round((cx1 - cx0) * sx)), max(1, round((cy1 - cy0) * sy))
+                pedaco = rgba.resize((min(dw, 256), min(dh, 256)), Image.LANCZOS, box=(cx0, cy0, cx1, cy1))
+                if pedaco.getchannel("A").getextrema()[1] == 0: continue
+                lad = Image.new("RGBA", (256, 256), (0, 0, 0, 0)); lad.paste(pedaco, (dx0, dy0))
+                os.makedirs(f"{destino}/{z}/{tx}", exist_ok=True)
+                lad.save(f"{destino}/{z}/{tx}/{ty}.webp", "WEBP", quality=86, method=4, alpha_quality=90)
+                total += 1
+    print(f"  {total} pedaços de planta gerados em {destino}")
 
 def otimizar_planta(lot):
     """Baixa a planta do forinvest uma vez, reduz o peso (WebP de alta qualidade) e guarda no repositório.
@@ -83,13 +135,15 @@ def otimizar_planta(lot):
     meta = f"plantas/{pasta}.json"
     try:
         info = json.load(open(meta, encoding="utf-8")) if os.path.exists(meta) else {}
-        if info.get("src") != src or not (info.get("usar_original") or os.path.exists(info.get("arquivo", "-"))):
+        if info.get("src") != src or not (info.get("usar_original") or os.path.exists(info.get("arquivo", "-"))) \
+           or not os.path.isdir(f"plantas/{pasta}/{ver}"):
             from PIL import Image
             req = urllib.request.Request(src, headers={"User-Agent": HEAD["User-Agent"]})
             bruto = urllib.request.urlopen(req, timeout=120).read()
             img = Image.open(io.BytesIO(bruto))
             img = img.convert("RGBA" if ("A" in img.getbands() or img.mode == "P") else "RGB")
             w, h = img.size
+            gerar_ladrilhos(img, p["limites"], f"plantas/{pasta}", ver)
             k = min(1.0, LADO_MAX / max(w, h))
             if k < 1: img = img.resize((round(w * k), round(h * k)), Image.LANCZOS)
             # testa WebP de alta qualidade e PNG otimizado; fica com o mais leve
@@ -100,14 +154,16 @@ def otimizar_planta(lot):
             for velho in ("webp", "png"):
                 if os.path.exists(f"plantas/{pasta}.{velho}"): os.remove(f"plantas/{pasta}.{velho}")
             if len(novo) >= len(bruto) and k == 1:
-                info = {"src": src, "usar_original": True}
+                info = {"src": src, "usar_original": True, "ladrilhos": f"plantas/{pasta}/{ver}"}
             else:
                 arquivo = f"plantas/{pasta}.{ext}"
                 open(arquivo, "wb").write(novo)
-                info = {"src": src, "arquivo": arquivo, "original_kb": len(bruto) // 1024, "otimizada_kb": len(novo) // 1024,
+                info = {"src": src, "arquivo": arquivo, "ladrilhos": f"plantas/{pasta}/{ver}", "original_kb": len(bruto) // 1024, "otimizada_kb": len(novo) // 1024,
                         "original_px": [w, h], "otimizada_px": list(img.size)}
             json.dump(info, open(meta, "w", encoding="utf-8"))
             print(f"  planta {pasta}: {len(bruto)//1024} KB -> {len(novo)//1024} KB ({w}x{h} -> {img.size[0]}x{img.size[1]})")
+        if info.get("ladrilhos") and os.path.isdir(info["ladrilhos"]):
+            p["ladrilhos"] = {"base": info["ladrilhos"], "zmin": Z_MIN, "zmax": Z_MAX}
         if not info.get("usar_original"):
             p["original"] = src
             p["url"] = f"{info['arquivo']}?v={ver}"
@@ -175,7 +231,7 @@ def main():
             print("ERRO em", item.get("id"), e)
     if not saida: sys.exit("Nenhum loteamento baixado.")
     if os.path.exists("index.html"):
-        pagina = open("index.html", encoding="utf-8").read()
+        pagina = CASCA
         for item in lista:
             pasta = re.sub(r"[^a-z0-9-]", "", item["id"].lower())
             if not pasta: continue
