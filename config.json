@@ -562,7 +562,107 @@
     "porEntrada": {},
     "porLote": {}
    }
+  },
+  "laffin": {
+   "conds": [
+    {
+     "id": "cmw6iuny183l",
+     "sinal": 3000,
+     "fases": [
+      {
+       "n": 8,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "10000": "cmw6iuny183l",
+    "15000": "cmw6iuny183l",
+    "20000": "cmw6iuny183l",
+    "50000": "cmw6iuny183l"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "desm-elmar-hostin-2": {
+   "conds": [
+    {
+     "id": "cmw6ivak3xx6",
+     "sinal": 10000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "30000": "cmw6ivak3xx6",
+    "40000": "cmw6ivak3xx6"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "desm-elmar-hostin-3": {
+   "conds": [
+    {
+     "id": "cmw6ivmud54z",
+     "sinal": 10000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "30000": "cmw6ivmud54z"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "godri": {
+   "conds": [
+    {
+     "id": "cmw6iw71eqbb",
+     "sinal": 3000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "22000": "cmw6iw71eqbb",
+    "25000": "cmw6iw71eqbb",
+    "30000": "cmw6iw71eqbb"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {
+     "19|20": 25000
+    }
+   }
   }
  },
- "salvoEm": "2026-11-07T14:20:59.148Z"
+ "salvoEm": "2026-11-07T14:54:37.094Z"
 }
