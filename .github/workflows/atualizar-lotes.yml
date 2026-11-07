@@ -10,8 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Preparar
+        run: pip install --quiet pillow
       - name: Baixar lotes do forinvest
-        run: python3 atualizar.py
+        run: python atualizar.py
         env:
           FORINVEST_EMAIL: ${{ secrets.FORINVEST_EMAIL }}
           FORINVEST_SENHA: ${{ secrets.FORINVEST_SENHA }}
@@ -21,4 +26,3 @@ jobs:
           git config user.email "robo-lotes@users.noreply.github.com"
           git add -A
           git diff --cached --quiet || (git commit -m "Atualiza lotes" && git pull --rebase origin main && git push)
- 
