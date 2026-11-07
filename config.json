@@ -105,7 +105,34 @@
     },
     "porLote": {}
    }
+  },
+  "thomaselli": {
+   "conds": [
+    {
+     "id": "cmw5vfgytpf0",
+     "sinal": 7000,
+     "fases": [
+      {
+       "n": 12,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "16500": "cmw5vfgytpf0",
+    "22000": "cmw5vfgytpf0",
+    "26400": "cmw5vfgytpf0",
+    "26500": "cmw5vfgytpf0",
+    "33000": "cmw5vfgytpf0"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
   }
  },
- "salvoEm": "2026-11-07T01:40:17.516Z"
+ "salvoEm": "2026-11-07T03:57:15.003Z"
 }
