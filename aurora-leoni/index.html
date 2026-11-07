@@ -239,6 +239,26 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
 @keyframes tuPulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 @media (prefers-reduced-motion: reduce){.tu *{animation:none !important}.c-lote .tu-mini{transform:none}}
 #btnAjuda{position:fixed;left:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);z-index:900;width:34px;height:34px;border-radius:50%;border:0;background:var(--paper);color:var(--sea);font:inherit;font-weight:800;font-size:1.05rem;box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer}
+
+/* ===== card: entrada em opções + linha do tempo ===== */
+.block h3 small{font-weight:600;letter-spacing:0;color:var(--muted);font-size:.74rem;margin-left:6px;text-transform:none}
+.opc{border:1.5px solid var(--line);border-radius:14px;padding:11px 13px}
+.opc-t{font-size:.74rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.opc-v{font-size:1.45rem;font-weight:800;line-height:1.15;margin-top:2px}
+.opc-s{font-size:.8rem;color:var(--muted)}
+.opc .btn.consulta{margin-top:6px}
+.ou{display:flex;align-items:center;gap:10px;margin:7px 0;color:var(--muted);font-size:.8rem;font-weight:800}
+.ou::before,.ou::after{content:"";flex:1;height:1px;background:var(--line)}
+.tl{list-style:none;margin:8px 0 0;padding:0}
+.tl li{position:relative;padding:0 0 12px 24px}
+.tl li:last-child{padding-bottom:0}
+.tl li::before{content:"";position:absolute;left:3px;top:4px;width:11px;height:11px;border-radius:50%;background:var(--sea);box-shadow:0 0 0 3px var(--sea-soft)}
+.tl li::after{content:"";position:absolute;left:8px;top:18px;bottom:0;width:2px;background:var(--line)}
+.tl li:last-child::after{display:none}
+.tl-t{font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--sea)}
+.tl-v{font-size:1.12rem;font-weight:800;line-height:1.2;margin-top:1px}
+.tl-s{font-size:.82rem;color:var(--muted);margin-top:1px;line-height:1.35}
+.tl-s b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -696,6 +716,13 @@ function draw(){
   }
 }
 
+/* ----- 1ª parcela da entrada: até dia 20 do próximo mês (depois do dia 23, do mês seguinte a ele) ----- */
+function primeiroVencimento(hoje = new Date()){
+  const d = new Date(hoje.getFullYear(), hoje.getMonth() + (hoje.getDate() > 23 ? 2 : 1), 20);
+  const mes = d.toLocaleDateString('pt-BR', {month:'long'});
+  const ano = d.getFullYear() !== hoje.getFullYear() ? ' de ' + d.getFullYear() : '';
+  return {longo: `20 de ${mes}${ano}`, curto: `20/${String(d.getMonth() + 1).padStart(2,'0')}/${d.getFullYear()}`};
+}
 /* ----- Card do lote ----- */
 function linkWa(texto){ return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`; }
 function open(LT, l){
@@ -712,22 +739,27 @@ function open(LT, l){
   const waAVista = linkWa(`Qual o valor da entrada do ${ident}?`);
   const botaoConsulta = href => `<a class="btn consulta" href="${href}" target="_blank" rel="noopener">${ICO_CHAT}Consulte com o Corretor</a>`;
 
+  const venc = primeiroVencimento();
+  const nEt = i => ['1ª','2ª','3ª','4ª','5ª'][i] || (i + 1) + 'ª';
+
+  /* ----- mensagem do WhatsApp ----- */
   const linhas = [`Me interessei pelo ${ident}`];
   if(ent.aVista || p) linhas.push('', '🤩Que está com essa Condição Incrível:👇🏻');
   if(ent.aVista) linhas.push('', '👇🏻ENTRADA À VISTA:', `- ${rs(ent.aVista)}`);
+  if(ent.aVista && ent.cond) linhas.push('', 'ou');
   if(ent.cond){
     linhas.push('', '👇🏻ENTRADA FACILITADA:');
-    if(ent.fases.length === 1) linhas.push(`- Sinal de ${rs(ent.sinal || 0)} +${ent.fases[0].n}x de ${rs(ent.fases[0].valor)}`);
-    else {
-      linhas.push(`- Sinal de ${rs(ent.sinal || 0)} à vista`);
-      ent.fases.forEach((f, i) => { linhas.push('', `- ${f.n}x de ${rs(f.valor)}`); if(i) linhas.push(`> Inicia só após quitar as ${ent.fases[i-1].n}x`); });
-    }
+    if(ent.sinal) linhas.push(`- Sinal de ${rs(ent.sinal)} à vista`);
+    ent.fases.forEach((f, i) => {
+      linhas.push(`- ${ent.fases.length > 1 ? nEt(i) + ' etapa: ' : ''}${f.n}x de ${rs(f.valor)}`);
+      linhas.push(i ? `> Inicia só após quitar as ${ent.fases[i-1].n}x` : `> 1ª parcela até ${venc.curto}`);
+    });
   }
   if(p){
-    linhas.push('', '👇🏻PARCELAS:');
-    p.fases.forEach((f,i) => {
+    linhas.push('', '👇🏻FINANCIAMENTO (depois da entrada):');
+    p.fases.forEach((f, i) => {
       if(i) linhas.push('');
-      linhas.push(`- ${i?'+':''}${f.n}x de ${salMsg(f)}`, `(${rs(f.val*sm)} hoje)`);
+      linhas.push(`- ${p.fases.length > 1 ? nEt(i) + ' etapa: ' : ''}${f.n}x de ${salMsg(f)}`, `(${rs(f.val*sm)} hoje)`);
       linhas.push(i ? `> Inicia após quitar as ${p.fases[i-1].n}x` : '> Inicia após quitar a entrada');
     });
   }
@@ -739,17 +771,32 @@ function open(LT, l){
   <span class="pill" style="background:${sit.fundo}"><i style="background:${sit.cor}"></i>${sit.nome}</span>
   <div class="area"><b>${area ? area.toLocaleString('pt-BR') + ' m²' : ''}</b></div>`;
   if(livre){
-    h += `<div class="block"><h3>ENTRADA</h3>
-      <div class="row"><span>À vista</span><b>${ent.aVista ? brl(ent.aVista) : botaoConsulta(waAVista)}</b></div>
-      <div class="row"><span>Parcelada</span><b>${ent.cond ? `${brl(ent.sinal || 0)} de sinal` + ent.fases.map((f, i) => `<br>+ ${f.n}x de ${brl(f.valor)}${i ? `<br><small style="font-weight:600;color:var(--muted)">inicia após quitar as ${ent.fases[i-1].n}x</small>` : ''}`).join('') : botaoConsulta(waConsulta)}</b></div>
+    /* ----- 1. Entrada: duas opções, uma OU outra ----- */
+    h += `<div class="block"><h3>1. ENTRADA <small>escolha uma das formas</small></h3>
+      <div class="opc">
+        <div class="opc-t">Entrada à vista</div>
+        ${ent.aVista ? `<div class="opc-v">${brl(ent.aVista)}</div><div class="opc-s">pagamento único</div>` : botaoConsulta(waAVista)}
+      </div>
+      <div class="ou"><span>ou</span></div>
+      <div class="opc">
+        <div class="opc-t">Entrada facilitada</div>
+        ${ent.cond ? `<ol class="tl">
+          ${ent.sinal ? `<li><div class="tl-t">Sinal, à vista</div><div class="tl-v">${brl(ent.sinal)}</div></li>` : ''}
+          ${ent.fases.map((f, i) => `<li><div class="tl-t">${ent.fases.length > 1 ? nEt(i) + ' etapa' : 'Parcelas'}</div>
+            <div class="tl-v">${f.n}x de ${brl(f.valor)}</div>
+            <div class="tl-s">${i ? `começa só depois de pagar as ${ent.fases[i-1].n}x` : `1ª parcela até <b>${venc.longo}</b>`}</div></li>`).join('')}
+        </ol>` : botaoConsulta(waConsulta)}
+      </div>
     </div>`;
+    /* ----- 2. Financiamento: linha do tempo ----- */
     if(p){
-      h += `<div class="block"><h3>PARCELAMENTO</h3>`;
-      p.fases.forEach((f,i) => {
-        h += `<div class="big"${i?' style="margin-top:10px"':''}>${i?'+ ':''}${f.n}x de ${f.txt} salário mínimo</div>
-        <div class="today">(${brl(f.val*sm)} hoje)${p.fases.length>1 ? '<br>' + (i ? 'Inicia após quitar as ' + p.fases[i-1].n + 'x' : 'Inicia após quitar a entrada') : ''}</div>`;
+      h += `<div class="block"><h3>2. FINANCIAMENTO <small>começa depois da entrada</small></h3><ol class="tl">`;
+      p.fases.forEach((f, i) => {
+        h += `<li><div class="tl-t">${p.fases.length > 1 ? nEt(i) + ' etapa' : 'Parcelas'}</div>
+          <div class="tl-v">${f.n}x de ${f.txt} salário mínimo</div>
+          <div class="tl-s">${brl(f.val*sm)} por mês, no valor de hoje${i ? ` · começa só depois de pagar as ${p.fases[i-1].n}x` : ''}</div></li>`;
       });
-      h += `</div>`;
+      h += `</ol></div>`;
     }
     h += `<div class="actions">
         <a class="btn wa" href="${linkWa(linhas.join('\n'))}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
