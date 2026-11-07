@@ -325,6 +325,20 @@ body.modo #cantoEsq .chat{display:none}
 @keyframes cair{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(520px) rotate(540deg)}}
 @media (prefers-reduced-motion: reduce){.confete{display:none}}
 [hidden]{display:none !important}
+.head{align-items:center}
+.head .hd1{flex:1;min-width:0}
+.head h2{font-size:1.45rem;line-height:1.15}
+.head h2 .q{font-size:1rem;font-weight:600;color:var(--muted);margin:0;letter-spacing:0}
+.hd2{display:flex;align-items:center;gap:10px;margin-top:5px}
+.hd2 .pill{margin-top:0}
+.hd2 .area{margin:0;font-weight:800;font-size:.95rem}
+.card .close{width:34px;height:34px}
+.btn.enviar{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:10px;background:var(--sea-soft);color:var(--sea);font-size:.92rem;border:1.5px solid var(--sea)}
+.btn.enviar svg{width:17px;height:17px}
+.selchip{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);z-index:1200;display:flex;align-items:center;gap:8px;background:#fff;color:#132c34;border-radius:999px;padding:6px 6px 6px 12px;font-weight:800;font-size:.86rem;box-shadow:0 3px 14px rgba(0,0,0,.35)}
+.selchip button{border:0;background:#d93636;color:#fff;width:26px;height:26px;border-radius:50%;font-size:.8rem;cursor:pointer;display:grid;place-items:center}
+.sc-pino{width:12px;height:17px;background:#d93636;clip-path:path('M6 0C2.7 0 0 2.6 0 5.8c0 4.3 5.2 11.4 5.6 11.9.2.3.6.3.8 0C6.8 17.2 12 10.1 12 5.8 12 2.6 9.3 0 6 0z')}
+#fDestacar.on{background:#d93636;color:#fff;border-color:#d93636}
 </style>
 </head>
 <body>
@@ -338,8 +352,9 @@ body.modo #cantoEsq .chat{display:none}
   <div class="sub" id="cidade"></div>
   <div class="filters">
     <select id="fLot" aria-label="Escolher loteamento"></select>
-    <select id="fQuadra" aria-label="Filtrar por quadra"></select>
-    <button class="chip" id="fBarato" aria-pressed="false">⭐ Mais facilitados</button>
+    <select id="fQuadra" aria-label="Filtrar por quadra" hidden></select>
+    <button class="chip" id="fBarato" aria-pressed="false" hidden>⭐ Mais facilitados</button>
+    <button class="chip" id="fDestacar" aria-pressed="false">📍 Destacar disponíveis</button>
     <label class="chip"><input type="checkbox" id="fDisp"> Só disponíveis</label>
     <label class="chip"><input type="checkbox" id="fPlanta" checked> Planta</label>
   </div>
@@ -437,6 +452,7 @@ body.modo #cantoEsq .chat{display:none}
   <div class="adm-foot"><div class="adm-msg" id="rvMsg" aria-live="polite"></div><div class="rv-prog" id="rvProg"><i></i></div><button class="btn pri" id="rvEnviar" style="flex:1">Enviar documentos</button></div>
 </div>
 
+<div class="selchip" id="selChip" hidden role="status"><span class="sc-pino" aria-hidden="true"></span><span id="selTxt">1 selecionado</span><button id="selX" aria-label="Desmarcar os lotes selecionados">✕</button></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="loteTitulo"><div class="card" id="card"></div></div>
@@ -475,6 +491,7 @@ function parsePlano(k){
   return fases.length ? {fases} : null;
 }
 const salMsg = f => f.val < 1 ? `${Math.round(f.val*100)}% do Salário` : `${f.txt} Salário`;
+const ICO_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
 const ICO_CHAT = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm4 7.5a1.5 1.5 0 1 0 0 .01zm4 0a1.5 1.5 0 1 0 0 .01zm4 0a1.5 1.5 0 1 0 0 .01z"/></svg>';
 
 /* ---------- Situação de cada lote (cores) ---------- */
@@ -495,6 +512,18 @@ let LOTEAMENTOS = [], ATUALIZADO = '';
 const situacao = st => SIT_PADRAO[st] || 'indisponivel';
 const chaveLote = l => l[0] + '|' + l[1];
 
+const EXT = {zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,sete:7,oito:8,nove:9,dez:10,onze:11,doze:12,treze:13,
+  quatorze:14,catorze:14,quinze:15,dezesseis:16,dezasseis:16,dezessete:17,dezoito:18,dezenove:19,vinte:20,trinta:30,quarenta:40,
+  cinquenta:50,cincoenta:50,sessenta:60,setenta:70,oitenta:80,noventa:90,cem:100,cento:100,duzentos:200,trezentos:300,
+  quatrocentos:400,quinhentos:500,seiscentos:600,setecentos:700,oitocentos:800,novecentos:900};
+function nomeQuadra(q){
+  const t = String(q || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  if(!t || !/[a-z]/.test(t)) return q;
+  const partes = t.split(/\s+e\s+|\s+/).filter(Boolean);
+  if(!partes.every(p => p in EXT)) return q;
+  return String(partes.reduce((s, p) => s + EXT[p], 0));
+}
+const chaveNova = k => { const i = k.lastIndexOf('|'); return i < 0 ? k : nomeQuadra(k.slice(0, i)) + k.slice(i); };
 function normalizaRegras(r){
   r = r || {};
   const lots = {};
@@ -502,7 +531,7 @@ function normalizaRegras(r){
     lots[id] = {
       conds: (v.conds || []).map(normCond).filter(Boolean),
       porEntrada: Object.assign({}, v.porEntrada || {}),
-      porLote: Object.assign({}, v.porLote || {}),
+      porLote: Object.fromEntries(Object.entries(v.porLote || {}).map(([k, x]) => [chaveNova(k), x])),
       av: normAv(v.av)
     };
   });
@@ -513,7 +542,8 @@ function normalizaRegras(r){
 /* Entrada à vista editada pelo corretor: av.porLote["A|12"] vale mais que av.porEntrada["15000"] (Cód. original) */
 function normAv(a){
   const so = o => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => [k, +v]).filter(([, v]) => numOk(v) && v > 0));
-  return {porEntrada: so(a && a.porEntrada), porLote: so(a && a.porLote)};
+  const pl = so(a && a.porLote);
+  return {porEntrada: so(a && a.porEntrada), porLote: Object.fromEntries(Object.entries(pl).map(([k, v]) => [chaveNova(k), v]))};
 }
 function aVistaDe(R, L, l){
   const r = R && R.lots && R.lots[L.id], orig = l[7] || 0;
@@ -589,7 +619,7 @@ function slugDaUrl(){
 }
 function linkDe(L){ return BASE + (L ? encodeURIComponent(L.id) : ''); }
 function atualizarUrl(){
-  if(!location.hostname.endsWith('github.io')) return;
+  if(!location.hostname.endsWith('github.io') || new URLSearchParams(location.search).get('lote') && FIXOS.length) return;
   const alvo = linkDe(LOT);
   if(location.href.replace(/\/$/, '') !== alvo.replace(/\/$/, '')) history.replaceState(null, '', alvo);
 }
@@ -599,6 +629,10 @@ function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('
    MAPA
    ===================================================================== */
 let FACIL = null;   // {L, set} lotes mais facilitados em destaque
+let zoomEstavel = null;
+let FIXOS = [];          // lotes marcados com alfinete (link compartilhado ou apertar e segurar)
+let DESTACAR = false;    // alfinete em todos os disponíveis do loteamento
+let ignorarClique = 0;
 let map, LOT = null, selected = null, camada = null, visiveis = [], placas = null, MODO = null;
 const fL = $('fLot'), fQ = $('fQuadra');
 
@@ -615,6 +649,7 @@ async function initMap(){
   try {
     const d = await dadosPromise;
     LOTEAMENTOS = (d.loteamentos || d).filter(L => L && L.lotes && L.lotes.length);
+    LOTEAMENTOS.forEach(L => L.lotes.forEach(l => l[0] = nomeQuadra(l[0])));
     ATUALIZADO = d.atualizado || '';
     aplicarConfig(await configPromise);
   } catch(e){
@@ -622,12 +657,12 @@ async function initMap(){
     $('cidade').textContent = 'Verifique a internet e recarregue a página.'; return;
   }
   map = new google.maps.Map($('map'), {
-    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:9, isFractionalZoomEnabled:true, mapTypeId:'hybrid', tilt:0,
+    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:10, isFractionalZoomEnabled:false, backgroundColor:'#1d2b1c', mapTypeId:'hybrid', tilt:0,
     streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy', mapTypeControl:false
   });
   LOTEAMENTOS.forEach(L => {
     L.bounds = limitesDe(L);
-    if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
+    if(L.planta) L.overlay = new google.maps.GroundOverlay(/^https?:/i.test(L.planta.url) ? L.planta.url : BASE + L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
       {lat:L.planta.limites[0][0], lng:L.planta.limites[0][1]}, {lat:L.planta.limites[1][0], lng:L.planta.limites[1][1]}) : L.bounds, {opacity:.92, clickable:false});
   });
   const area = new google.maps.LatLngBounds({lat:-27.20, lng:-49.40}, {lat:-25.90, lng:-48.30}); // norte de SC (Joinville, Araquari, Barra do Sul, Itajaí)
@@ -637,10 +672,15 @@ async function initMap(){
   criarPlacas(); criarCamada();
   fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${esc(L.id)}">${esc(L.nome)}</option>`).join('');
   map.addListener('click', tocarMapa);
-  map.addListener('idle', draw);
+  map.addListener('idle', () => { zoomEstavel = map.getZoom(); draw(); });
+  // nunca afasta mais de 2 níveis de uma vez: evita o "pulo" e a tela cinza carregando
+  map.addListener('zoom_changed', () => {
+    const z = map.getZoom();
+    if(zoomEstavel != null && z < zoomEstavel - 2) map.setZoom(zoomEstavel - 2);
+  });
   const ini = LOTEAMENTOS.find(L => L.id.toLowerCase() === slugDaUrl());
-  if(ini) escolher(ini.id); else verTodos();
-  setTimeout(() => mostrarTutorial(false), 700);
+  if(ini){ if(!abrirLoteDoLink(ini)) escolher(ini.id); } else verTodos();
+  if(!new URLSearchParams(location.search).get('lote')) setTimeout(() => mostrarTutorial(false), 700);   // quem chega por link de lote vai direto ao lote
 }
 window.initMap = initMap;
 
@@ -651,6 +691,7 @@ function enquadrar(b, pad){
   const p = typeof pad === 'number' ? {top:pad, bottom:pad, left:pad, right:pad} : Object.assign({top:0, bottom:0, left:0, right:0}, pad);
   const k = Math.min(1, (H - 140) / Math.max(1, p.top + p.bottom), (W - 140) / Math.max(1, p.left + p.right));
   if(k < 1) Object.keys(p).forEach(x => p[x] = Math.max(0, Math.floor(p[x] * k)));
+  zoomEstavel = null;   // enquadramento feito pelo site: pode afastar à vontade
   map.fitBounds(b, p);
 }
 function verTodos(){
@@ -759,7 +800,8 @@ function criarCamada(){
     onAdd(){ this.cv = document.createElement('canvas'); Object.assign(this.cv.style, {position:'absolute', pointerEvents:'none', zIndex:'1000'});
       this.ctx = this.cv.getContext('2d'); this.getPanes().overlayLayer.appendChild(this.cv); }
     onRemove(){ this.cv.remove(); }
-    draw(){
+    draw(){ if(this.pedido) return; this.pedido = requestAnimationFrame(() => { this.pedido = null; this.desenhar(); }); }
+    desenhar(){
       const pr = this.getProjection(), b = map.getBounds(); if(!pr || !b || !this.cv) return;
       const div = map.getDiv(), W = div.clientWidth, H = div.clientHeight, M = Math.round(Math.max(W,H) * .5);
       const c0 = pr.fromLatLngToDivPixel(map.getCenter());
@@ -802,11 +844,23 @@ function criarCamada(){
         marcados.forEach(([x,y]) => { ctx.moveTo(x + r * 1.55, y); ctx.arc(x, y, r * 1.55, 0, 6.2832); });
         ctx.lineWidth = Math.max(2.5, r * .45); ctx.strokeStyle = '#16c25a'; ctx.stroke();
       }
-      // poucos lotes na tela (menos de 10): cada um ganha um alfinete de localização
+      // alfinetes: poucos lotes na tela (menos de 10), "Destacar disponíveis" e lotes selecionados
       const naTela = visiveis.filter(v => v.naTela);
-      const comPino = !MODO && naTela.length > 0 && naTela.length < 10;
-      visiveis.forEach(v => v.pino = comPino && v.naTela);
-      if(comPino) naTela.forEach(v => desenharPino(ctx, v.x - x0, v.y - y0 - r, SIT[situacao(v.l[3])].cor === SIT.disponivel.cor ? '#0d5d6e' : SIT[situacao(v.l[3])].cor));
+      const poucos = !MODO && naTela.length > 0 && naTela.length < 10;
+      visiveis.forEach(v => v.pino = !MODO && v.naTela && (poucos || (DESTACAR && v.L === LOT && situacao(v.l[3]) === 'disponivel')));
+      FIXOS.forEach(f => {                      // selecionados aparecem em qualquer zoom
+        let v = visiveis.find(x => x.l === f.l);
+        if(!v){
+          if(!f.L.ll) f.L.ll = f.L.lotes.map(l => new google.maps.LatLng(l[4], l[5]));
+          const p = pr.fromLatLngToDivPixel(f.L.ll[f.L.lotes.indexOf(f.l)]);
+          if(p.x - x0 < -30 || p.y - y0 < -40 || p.x - x0 > CW + 30 || p.y - y0 > CH + 10) return;
+          v = {L: f.L, l: f.l, x: p.x, y: p.y, naTela: true, fixo: true}; visiveis.push(v);
+        }
+        v.pino = true; v.fixo = true;
+      });
+      const pinos = visiveis.filter(v => v.pino);
+      const sombra = pinos.length <= 40;
+      pinos.forEach(v => desenharPino(ctx, v.x - x0, v.y - y0 - (v.fixo && !emFoco(v.L, z, b) ? 0 : r), sombra));
       if(selected && !MODO && selected.L.ll){
         const p = pr.fromLatLngToDivPixel(selected.L.ll[selected.L.lotes.indexOf(selected.l)]);
         ctx.beginPath(); ctx.arc(p.x - x0, p.y - y0, r * 1.4, 0, 6.2832);
@@ -817,14 +871,15 @@ function criarCamada(){
   camada = new Camada(); camada.setMap(map);
 }
 
-function desenharPino(ctx, x, y, cor){
-  const R = 10, cy = y - 22;
-  ctx.beginPath(); ctx.moveTo(x, y);
-  ctx.bezierCurveTo(x - 3, cy + 12, x - R, cy + 6, x - R, cy);
-  ctx.arc(x, cy, R, Math.PI, 0);
-  ctx.bezierCurveTo(x + R, cy + 6, x + 3, cy + 12, x, y);
-  ctx.closePath(); ctx.fillStyle = cor; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
-  ctx.beginPath(); ctx.arc(x, cy, 3.8, 0, 6.2832); ctx.fillStyle = '#fff'; ctx.fill();
+const PINO = new Path2D('M12 0C5.37 0 0 5.24 0 11.7c0 8.55 10.47 22.9 11.2 23.9a1 1 0 0 0 1.6 0C13.53 34.6 24 20.25 24 11.7 24 5.24 18.63 0 12 0z');
+function desenharPino(ctx, x, y, sombra = true){
+  const s = 1.05;                       // 25 x 37 px
+  ctx.save(); ctx.translate(x - 12 * s, y - 36.2 * s); ctx.scale(s, s);
+  if(sombra){ ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1.5; }
+  ctx.fillStyle = '#d93636'; ctx.fill(PINO);
+  ctx.shadowColor = 'transparent'; ctx.lineWidth = 1.3; ctx.strokeStyle = '#fff'; ctx.stroke(PINO);
+  ctx.beginPath(); ctx.arc(12, 11.7, 4.6, 0, 6.2832); ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.restore();
 }
 function loteNoToque(e){
   const pr = camada && camada.getProjection();
@@ -835,16 +890,17 @@ function loteNoToque(e){
   let melhor = null, dm = lim * lim;
   visiveis.forEach(v => {
     let d = (v.x - p.x) ** 2 + (v.y - p.y) ** 2;
-    if(v.pino) d = Math.min(d, (v.x - p.x) ** 2 + (v.y - 26 - p.y) ** 2);   // tocar no alfinete também abre
+    if(v.pino) d = Math.min(d, (v.x - p.x) ** 2 + (v.y - 30 - p.y) ** 2);   // tocar no alfinete também abre
     if(d < dm){ dm = d; melhor = v; }
   });
   return melhor;
 }
 function tocarMapa(e){
+  if(Date.now() < ignorarClique) return;
   const v = loteNoToque(e);
   if(MODO){ if(v) alternarMarcacao(v.L, v.l); return; }
   if(!v){ closeCard(); return; }
-  if(map.getZoom() < 17){ map.setCenter({lat:v.l[4], lng:v.l[5]}); map.setZoom(19); return; }
+  if(map.getZoom() < 17 && !v.pino){ map.setCenter({lat:v.l[4], lng:v.l[5]}); map.setZoom(19); return; }
   open(v.L, v.l);
 }
 
@@ -858,6 +914,7 @@ function draw(){
   }
   $('topo').style.display = LOT && !MODO ? '' : 'none';
   document.body.classList.toggle('modo', !!MODO);
+  atualizarSelChip();
   const mostrarPlanta = $('fPlanta').checked;
   LOTEAMENTOS.forEach(L => {
     if(!L.overlay) return;
@@ -879,6 +936,81 @@ function primeiroVencimento(hoje = new Date()){
   const ano = d.getFullYear() !== hoje.getFullYear() ? ' de ' + d.getFullYear() : '';
   return {longo: `20 de ${mes}${ano}`, curto: `20/${String(d.getMonth() + 1).padStart(2,'0')}/${d.getFullYear()}`};
 }
+/* ----- Lotes selecionados (alfinete fixo) ----- */
+function atualizarSelChip(){
+  const c = $('selChip');
+  c.hidden = !FIXOS.length || !!MODO;
+  $('selTxt').textContent = FIXOS.length === 1 ? '1 selecionado' : FIXOS.length + ' selecionados';
+  const topo = $('topo');
+  c.style.top = topo.style.display !== 'none' && topo.offsetHeight ? (topo.getBoundingClientRect().bottom + 8) + 'px' : '';
+}
+function fixar(L, l, ligar){
+  const i = FIXOS.findIndex(f => f.l === l);
+  if(i >= 0 && ligar !== true) FIXOS.splice(i, 1);
+  else if(i < 0) FIXOS.push({L, l});
+  atualizarSelChip(); if(camada) camada.draw();
+}
+$('selX').onclick = () => { FIXOS = []; atualizarSelChip(); if(camada) camada.draw(); };
+$('fDestacar').onclick = () => {
+  DESTACAR = !DESTACAR;
+  $('fDestacar').classList.toggle('on', DESTACAR); $('fDestacar').setAttribute('aria-pressed', DESTACAR);
+  if(camada) camada.draw();
+};
+
+/* Apertar e segurar 1,5 s em cima de um lote: marca com alfinete */
+(function(){
+  let t = null, x0 = 0, y0 = 0;
+  const alvo = $('map');
+  const cancelar = () => { clearTimeout(t); t = null; };
+  alvo.addEventListener('pointerdown', e => {
+    if(MODO || !e.isPrimary) return;
+    cancelar(); x0 = e.clientX; y0 = e.clientY;
+    t = setTimeout(() => {
+      t = null;
+      const pr = camada && camada.getProjection(); if(!pr) return;
+      const r = alvo.getBoundingClientRect();
+      const ll = pr.fromContainerPixelToLatLng(new google.maps.Point(x0 - r.left, y0 - r.top));
+      const v = ll && loteNoToque({latLng: ll});
+      if(!v) return;
+      ignorarClique = Date.now() + 900;
+      if(navigator.vibrate) navigator.vibrate(35);
+      const ja = FIXOS.some(f => f.l === v.l);
+      fixar(v.L, v.l);
+      toast(ja ? 'Alfinete removido' : `Lote ${v.l[1]} · Quadra ${v.l[0]} marcado`);
+    }, 1500);
+  }, true);
+  alvo.addEventListener('pointermove', e => { if(t && Math.hypot(e.clientX - x0, e.clientY - y0) > 12) cancelar(); }, true);
+  ['pointerup','pointercancel','pointerleave'].forEach(n => alvo.addEventListener(n, cancelar, true));
+  alvo.addEventListener('contextmenu', e => e.preventDefault());
+})();
+
+/* Enviar para alguém: link que abre direto neste lote */
+function linkLote(L, l){ return `${linkDe(L)}/?quadra=${encodeURIComponent(l[0])}&lote=${encodeURIComponent(l[1])}`; }
+async function enviarLote(L, l){
+  const url = linkLote(L, l);
+  const texto = `${url}\n\nOlha esse terreno: Lote ${l[1]} · Quadra ${l[0]} do ${L.nome} 🏡`;
+  try {
+    if(navigator.share){ await navigator.share({title: `Lote ${l[1]} · Quadra ${l[0]}`, text: texto}); return; }
+  } catch(e){ if(e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast('Link do lote copiado!'); } catch(e){}
+  window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+}
+/* Abriu pelo link de um lote: amplia, centraliza, marca com alfinete e abre o card */
+function abrirLoteDoLink(L){
+  const ps = new URLSearchParams(location.search), q = ps.get('quadra'), n = ps.get('lote');
+  if(!q || !n) return false;
+  const l = L.lotes.find(x => String(x[0]).toLowerCase() === nomeQuadra(q).toLowerCase() && String(x[1]) === String(n));
+  if(!l) return false;
+  fixar(L, l, true);
+  zoomEstavel = null;
+  map.setCenter({lat: l[4], lng: l[5]}); map.setZoom(20);
+  google.maps.event.addListenerOnce(map, 'idle', () => {
+    open(L, l);
+    setTimeout(() => { const h = $('sheet').offsetHeight || 0; map.panBy(0, Math.round(h / 2)); }, 350);
+  });
+  return true;
+}
+
 /* ----- Card do lote ----- */
 function linkWa(texto){ return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`; }
 function montarCard(LT, l){
@@ -921,10 +1053,10 @@ function montarCard(LT, l){
   linhas.push('', '👇🏼Localização exata do terreno:', `📍${gm}`);
 
   let h = `<div class="grip"></div>
-  <div class="head"><div><h2 id="loteTitulo">Lote ${esc(num)}</h2><div class="q">Quadra ${esc(quadra)}</div></div>
+  <div class="head"><div class="hd1"><h2 id="loteTitulo">Lote ${esc(num)}<span class="q"> · Quadra ${esc(quadra)}</span></h2>
+    <div class="hd2"><span class="pill" style="background:${sit.fundo}"><i style="background:${sit.cor}"></i>${sit.nome}</span>${area ? `<span class="area">${area.toLocaleString('pt-BR')} m²</span>` : ''}</div></div>
   <button class="close" aria-label="Fechar" onclick="closeCard()">✕</button></div>
-  <span class="pill" style="background:${sit.fundo}"><i style="background:${sit.cor}"></i>${sit.nome}</span>
-  <div class="area"><b>${area ? area.toLocaleString('pt-BR') + ' m²' : ''}</b></div>`;
+  <button class="btn enviar" data-alvo="enviar" onclick="enviarLote(selected.L, selected.l)">${ICO_SHARE} Enviar para alguém</button>`;
   if(livre){
     /* ----- 1. Entrada: duas opções, uma OU outra ----- */
     h += `<div class="block"><h3>1. ENTRADA <small>escolha uma das formas</small></h3>
@@ -956,7 +1088,7 @@ function montarCard(LT, l){
     h += `<div class="actions">
         <a class="btn wa" data-alvo="wa" href="${linkWa(linhas.join('\n'))}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
         <button class="btn reserva" data-alvo="reserva" onclick="abrirReserva(selected.L, selected.l)">📄 Reservar este lote - Enviar documentos</button>
-        <a class="btn gm" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">📍 Ir para a localização</a>
+        <a class="btn gm" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">📍Traçar Rota até esse Lote</a>
       </div>
       <div class="note">Parcela corrigida conforme o salário mínimo vigente. Valores sujeitos a confirmação com o corretor.${ATUALIZADO ? ' Disponibilidade atualizada em ' + esc(ATUALIZADO) + '.' : ''}</div>`;
   } else {
@@ -1549,9 +1681,9 @@ function passoTutorial(){
       <svg class="tu-seta" viewBox="0 0 62 38" aria-hidden="true"><path d="M58 19H12M24 6L10 19l14 13" fill="none" stroke="#f2c230" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="tu-rotulo"></div>`;
     else cena.innerHTML = `<div class="tu-fim">
-      <div class="linha"><span class="ic">⭐</span><span><b>Mais facilitados</b>No topo do loteamento: mostra os lotes disponíveis com a menor entrada.</span></div>
+      <div class="linha"><span class="ic">📄</span><span><b>Reservar este lote</b>No card do lote: envie seus documentos direto para o corretor.</span></div>
       <div class="linha"><span class="ic wa">💬</span><span><b>Precisa de ajuda?</b>Toque na foto do corretor, no canto da tela, e fale direto pelo WhatsApp.</span></div>
-      <div class="linha"><span class="ic">📍</span><span><b>Ir para a localização</b>No card do lote: abre o Google Maps com a rota até o terreno.</span></div></div>`;
+      <div class="linha"><span class="ic">📍</span><span><b>Traçar rota até o lote</b>No card do lote: abre o Google Maps com a rota até o terreno. Aperte e segure um lote para marcá-lo com um alfinete.</span></div></div>`;
   }
   if(p.cena === 'card') focarCard(p);
   $('tuTit').textContent = p.t; $('tuTxt').textContent = p.d;
