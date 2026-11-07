@@ -230,6 +230,7 @@ def main():
         except Exception as e:
             print("ERRO em", item.get("id"), e)
     if not saida: sys.exit("Nenhum loteamento baixado.")
+    open(".nojekyll", "a").close()   # o GitHub Pages publica os milhares de pedaços de planta sem processar
     if os.path.exists("index.html"):
         pagina = CASCA
         for item in lista:
