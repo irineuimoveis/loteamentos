@@ -62,6 +62,36 @@
       }
      ],
      "financ": []
+    },
+    {
+     "id": "cmw5qjbpa2mh",
+     "sinal": 2500,
+     "fases": [
+      {
+       "n": 6,
+       "valor": 600
+      },
+      {
+       "n": 12,
+       "valor": 900
+      }
+     ],
+     "financ": []
+    },
+    {
+     "id": "cmw5qjzp1fq4",
+     "sinal": 1500,
+     "fases": [
+      {
+       "n": 6,
+       "valor": 600
+      },
+      {
+       "n": 12,
+       "valor": 900
+      }
+     ],
+     "financ": []
     }
    ],
    "porEntrada": {
@@ -77,5 +107,5 @@
    }
   }
  },
- "salvoEm": "2026-11-07T01:37:57.312Z"
+ "salvoEm": "2026-11-07T01:40:17.516Z"
 }
