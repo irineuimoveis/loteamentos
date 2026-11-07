@@ -928,12 +928,22 @@ function tocarMapa(e){
   open(v.L, v.l);
 }
 
+/* Qual loteamento está no centro da tela: o que tem o lote mais perto do centro (não o primeiro da lista) */
+function focoNoCentro(z, vista, c){
+  const la = c.lat(), lo = c.lng(), k = Math.cos(la * Math.PI / 180);
+  let melhor = null, dm = Infinity;
+  LOTEAMENTOS.forEach(L => {
+    if(!emFoco(L, z, vista)) return;
+    for(const l of L.lotes){ const d = (l[4] - la) ** 2 + ((l[5] - lo) * k) ** 2; if(d < dm){ dm = d; melhor = L; } }
+  });
+  return melhor;
+}
 function draw(){
   if(!map) return;
   const z = map.getZoom(), vista = map.getBounds();
   if(!MODO){
     const c = map.getCenter();
-    const foco = LOTEAMENTOS.find(L => emFoco(L, z, vista) && L.bounds.contains(c)) || LOTEAMENTOS.find(L => emFoco(L, z, vista)) || null;
+    const foco = focoNoCentro(z, vista, c);
     if(foco !== LOT){ LOT = foco; if(selected && selected.L !== LOT) closeCard(); if(FACIL && FACIL.L !== LOT) desligarFacil(); cabecalho(); atualizarUrl(); }
   }
   $('topo').style.display = LOT && !MODO ? '' : 'none';
