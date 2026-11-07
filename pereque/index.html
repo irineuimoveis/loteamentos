@@ -176,69 +176,73 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
 .sitrow .ex small{display:block;color:var(--muted);font-size:.74rem}
 .sitrow select{max-width:50%;font-size:14px;padding:8px}
 
-/* ===== Tutorial animado ===== */
+/* ===== Tutorial animado (usa o visual real do site) ===== */
 #tuto{background:rgba(4,14,18,.62);align-items:flex-end;justify-content:center;padding:0}
 @media (min-width:600px){#tuto{align-items:center;padding:20px}}
-.tu{background:var(--paper);color:var(--ink);width:min(440px,100%);border-radius:22px 22px 0 0;padding:16px 18px calc(env(safe-area-inset-bottom,0px) + 14px);box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.tu{background:var(--paper);color:var(--ink);width:min(440px,100%);border-radius:22px 22px 0 0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 12px);box-shadow:0 -8px 40px rgba(0,0,0,.4);touch-action:pan-y;user-select:none;-webkit-user-select:none}
 @media (min-width:600px){.tu{border-radius:22px}}
-.tu-cena{position:relative;height:190px;border-radius:16px;overflow:hidden;background:#3f5f3a}
-.tu h3{margin:14px 0 4px;font-size:1.15rem;font-weight:800}
-.tu p{margin:0;color:var(--muted);font-size:.93rem;line-height:1.45;min-height:3.6em}
-.tu-pts{display:flex;gap:6px;justify-content:center;margin:12px 0 8px}
-.tu-pts i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.tu-cena{position:relative;height:250px;border-radius:16px;overflow:hidden;background:#24391f}
+.tu h3{margin:12px 0 4px;font-size:1.12rem;font-weight:800}
+.tu p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.45;min-height:4.3em}
+.tu-pts{display:flex;gap:6px;justify-content:center;margin:10px 0 6px}
+.tu-pts i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:width .25s}
 .tu-pts i.on{background:var(--sea);width:20px;border-radius:4px}
+.tu-dica{text-align:center;font-size:.72rem;color:var(--muted);margin-bottom:8px}
 .tu-rod{display:flex;align-items:center;gap:8px}
-.tu-rod label{flex:1;font-size:.8rem;color:var(--muted);display:flex;gap:6px;align-items:center;user-select:none}
+.tu-rod label{flex:1;font-size:.8rem;color:var(--muted);display:flex;gap:6px;align-items:center}
 .tu-rod .btn{padding:11px 16px;font-size:.92rem;flex:none}
 .tu-pular{background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;cursor:pointer;padding:8px 4px}
-/* cenário: mapa de mentira */
-.tu-mapa{position:absolute;inset:-40%;background-color:#4c6e43;
-  background-image:radial-gradient(circle,#9aa3a7 0 4px,transparent 4.6px),radial-gradient(circle,#d23f3f 0 4px,transparent 4.6px),
-  linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px);
-  background-size:36px 26px,36px 26px,36px 26px,36px 52px;background-position:0 0,18px 13px,0 0,0 0}
-.tu-dedo{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.45)}
-.tu-onda{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #fff;opacity:0}
-.tu-mao{position:absolute;font-size:38px;left:50%;top:50%;margin:-6px 0 0 -12px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-/* 1: tocar na placa */
-.c-placa .tu-plq{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.95);filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
-.c-placa .tu-mao{animation:tuTap 2.4s ease-in-out infinite}
-.c-placa .tu-onda{top:44%;animation:tuOnda 2.4s ease-out infinite}
-@keyframes tuTap{0%{transform:translate(70px,60px)}40%,55%{transform:translate(0,0)}47%{transform:translate(0,0) scale(.85)}100%{transform:translate(70px,60px)}}
-@keyframes tuOnda{0%,44%{opacity:0;transform:scale(.4)}48%{opacity:.9}75%,100%{opacity:0;transform:scale(2.2)}}
-/* 2: pinça */
-.c-pinca .tu-mapa{animation:tuZoom 2.6s ease-in-out infinite}
-.c-pinca .d1{animation:tuD1 2.6s ease-in-out infinite}
-.c-pinca .d2{animation:tuD2 2.6s ease-in-out infinite}
-@keyframes tuZoom{0%,15%{transform:scale(1)}65%,85%{transform:scale(1.9)}100%{transform:scale(1)}}
-@keyframes tuD1{0%,15%{transform:translate(-14px,-12px)}65%,85%{transform:translate(-58px,-46px)}100%{transform:translate(-14px,-12px)}}
-@keyframes tuD2{0%,15%{transform:translate(14px,12px)}65%,85%{transform:translate(58px,46px)}100%{transform:translate(14px,12px)}}
-/* 3: arrastar */
-.c-arrasta .tu-mapa{animation:tuPan 2.8s ease-in-out infinite}
-.c-arrasta .tu-dedo{animation:tuArr 2.8s ease-in-out infinite}
-@keyframes tuPan{0%,10%{transform:translateX(0)}55%,70%{transform:translateX(-90px)}100%{transform:translateX(0)}}
-@keyframes tuArr{0%,10%{transform:translateX(45px)}55%,70%{transform:translateX(-45px)}100%{transform:translateX(45px)}}
-/* 4: tocar na bolinha */
-.c-lote .tu-mapa{inset:0;transform:scale(1.6)}
-.c-lote .tu-alvo{position:absolute;left:50%;top:40%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#9aa3a7;border:2px solid #fff;animation:tuAlvo 3s ease-in-out infinite}
-.c-lote .tu-mao{top:40%;animation:tuTap2 3s ease-in-out infinite}
-.c-lote .tu-mini{position:absolute;left:10px;right:10px;bottom:0;background:#fff;color:#132c34;border-radius:12px 12px 0 0;padding:9px 12px;font-size:.78rem;line-height:1.35;transform:translateY(105%);animation:tuSobe 3s ease-in-out infinite;box-shadow:0 -4px 14px rgba(0,0,0,.3)}
-.c-lote .tu-mini b{font-size:.95rem}
-@keyframes tuTap2{0%{transform:translate(60px,50px)}30%,40%{transform:translate(0,0)}35%{transform:translate(0,0) scale(.85)}55%,100%{transform:translate(60px,50px);opacity:0}}
-@keyframes tuAlvo{0%,33%{box-shadow:0 0 0 0 rgba(13,93,110,0)}38%,95%{box-shadow:0 0 0 4px #0d5d6e}100%{box-shadow:0 0 0 0 rgba(13,93,110,0)}}
-@keyframes tuSobe{0%,40%{transform:translateY(105%)}55%,92%{transform:translateY(0)}100%{transform:translateY(105%)}}
-/* 5: exemplo de condições */
-.c-cond{background:var(--sea-soft);height:auto;padding:12px}
-.ex-card{background:var(--paper);border-radius:12px;padding:11px 13px;font-size:.84rem;line-height:1.4;box-shadow:0 2px 10px rgba(0,0,0,.12)}
-.ex-card .tag{float:right;font-size:.66rem;font-weight:800;color:var(--muted);letter-spacing:.05em}
-.ex-card h4{margin:0;font-size:1.05rem}
-.ex-card .r{display:flex;justify-content:space-between;gap:10px;margin-top:3px}
-.ex-card .r span{color:var(--muted)}
-.ex-card .r b{text-align:right}
-.ex-card .s{font-size:.7rem;font-weight:800;color:var(--sea);margin-top:8px;letter-spacing:.04em}
-.ex-wa{margin-top:9px;background:var(--wa);color:#fff;border-radius:10px;padding:9px;text-align:center;font-weight:800;font-size:.84rem;animation:tuPulsa 1.6s ease-in-out infinite}
-@keyframes tuPulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-@media (prefers-reduced-motion: reduce){.tu *{animation:none !important}.c-lote .tu-mini{transform:none}}
-#btnAjuda{position:fixed;left:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);z-index:900;width:34px;height:34px;border-radius:50%;border:0;background:var(--paper);color:var(--sea);font:inherit;font-weight:800;font-size:1.05rem;box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer}
+/* fundo de mapa */
+.tu-mapa{position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 40% at 20% 30%,rgba(90,130,70,.55),transparent 70%),
+  radial-gradient(ellipse 50% 35% at 80% 70%,rgba(70,110,60,.5),transparent 70%),
+  repeating-linear-gradient(32deg,transparent 0 46px,rgba(200,200,190,.18) 46px 49px),
+  repeating-linear-gradient(-58deg,transparent 0 70px,rgba(200,200,190,.13) 70px 72px),#2c4527}
+.tu-rio{position:absolute;left:-10%;right:-10%;top:58%;height:16px;background:rgba(70,120,150,.55);transform:rotate(-12deg);border-radius:20px}
+/* placas aparecendo pela cidade */
+.tu-plq{position:absolute;transform:translate(-50%,-50%) scale(.46);opacity:0;animation:tuPop .45s cubic-bezier(.3,1.6,.5,1) forwards;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+@keyframes tuPop{from{opacity:0;transform:translate(-50%,-50%) scale(.2)}to{opacity:1;transform:translate(-50%,-50%) scale(.46)}}
+.tu-plq.alvo{animation:tuPop .45s cubic-bezier(.3,1.6,.5,1) forwards,tuBrilho 1.4s 2.2s ease-in-out infinite}
+@keyframes tuBrilho{0%,100%{filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}50%{filter:drop-shadow(0 0 12px #ffe58a)}}
+/* dedo */
+.tu-mao{position:absolute;font-size:36px;line-height:1;margin:-4px 0 0 -12px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.55));z-index:5;pointer-events:none}
+.tu-onda{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #fff;opacity:0;z-index:4}
+.tu-dedo{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.45);z-index:5}
+.tap .tu-mao{animation:tuTap 2.6s 1.6s ease-in-out infinite both}
+.tap .tu-onda{animation:tuOnda 2.6s 1.6s ease-out infinite both}
+@keyframes tuTap{0%{transform:translate(70px,70px);opacity:0}15%{opacity:1}45%,58%{transform:translate(0,0);opacity:1}51%{transform:translate(0,0) scale(.82)}85%,100%{transform:translate(70px,70px);opacity:0}}
+@keyframes tuOnda{0%,49%{opacity:0;transform:scale(.4)}52%{opacity:.95}78%,100%{opacity:0;transform:scale(2.3)}}
+/* lotes de verdade */
+.tu-lotes{position:absolute;inset:0;transform-origin:50% 50%}
+.tu-lotes svg{position:absolute;inset:0;width:100%;height:100%}
+.c-pinca .tu-lotes{animation:tuZoom 3s ease-in-out infinite}
+.c-pinca .d1{animation:tuD1 3s ease-in-out infinite}
+.c-pinca .d2{animation:tuD2 3s ease-in-out infinite}
+@keyframes tuZoom{0%,15%{transform:scale(1)}62%,85%{transform:scale(2.6)}100%{transform:scale(1)}}
+@keyframes tuD1{0%,15%{transform:translate(-14px,-12px)}62%,85%{transform:translate(-62px,-50px)}100%{transform:translate(-14px,-12px)}}
+@keyframes tuD2{0%,15%{transform:translate(14px,12px)}62%,85%{transform:translate(62px,50px)}100%{transform:translate(14px,12px)}}
+.tu-alvo{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 3px #0d5d6e;animation:tuAlvo 2.6s 1.6s infinite both;z-index:3}
+@keyframes tuAlvo{0%,48%{opacity:0;transform:scale(.6)}55%,100%{opacity:1;transform:scale(1)}}
+.tu-sobe{position:absolute;left:8px;right:8px;bottom:0;height:62%;overflow:hidden;border-radius:14px 14px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.4);transform:translateY(105%);animation:tuSobe 2.6s 1.6s ease-in-out infinite both;z-index:6}
+@keyframes tuSobe{0%,52%{transform:translateY(105%)}66%,92%{transform:translateY(0)}100%{transform:translateY(105%)}}
+/* card de verdade, com destaque e seta */
+.c-card{background:var(--sea-soft)}
+.tu-cardw{position:absolute;left:0;top:0;width:360px;transform-origin:0 0;transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.tu-cardw .card,.tu-sobe .card{max-height:none;overflow:visible;border-radius:16px;box-shadow:none;pointer-events:none}
+.tu-cardw .card .grip,.tu-sobe .card .grip{display:none}
+.tu-cardw [data-alvo]{transition:box-shadow .3s,background .3s}
+.tu-cardw .alvo-on{box-shadow:0 0 0 3px #f2c230,0 0 0 9px rgba(242,194,48,.28);border-radius:14px;position:relative;z-index:1}
+.tu-seta{position:absolute;z-index:7;width:62px;height:38px;pointer-events:none;transition:top .55s cubic-bezier(.4,0,.2,1),left .55s;animation:tuSeta 1.1s ease-in-out infinite;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+@keyframes tuSeta{0%,100%{transform:translateX(0)}50%{transform:translateX(-9px)}}
+.tu-rotulo{position:absolute;z-index:7;right:8px;max-width:58%;background:#f2c230;color:#3b2a00;font-weight:800;font-size:.74rem;line-height:1.25;padding:6px 9px;border-radius:10px;transition:top .55s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+/* passo final */
+.tu-fim{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:16px}
+.tu-fim .linha{display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:12px;padding:10px 12px;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.tu-fim .linha b{display:block}
+.tu-fim .ic{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:1.2rem;background:var(--sea-soft)}
+.tu-fim .ic.wa{background:#1fa458;color:#fff;animation:tuPulsa 1.6s ease-in-out infinite}
+@keyframes tuPulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@media (prefers-reduced-motion: reduce){.tu *{animation:none !important;transition:none !important}.tu-plq{opacity:1;transform:translate(-50%,-50%) scale(.46)}.tu-sobe{transform:none}}
 
 /* ===== card: entrada em opções + linha do tempo ===== */
 .block h3 small{font-weight:600;letter-spacing:0;color:var(--muted);font-size:.74rem;margin-left:6px;text-transform:none}
@@ -259,6 +263,68 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
 .tl-v{font-size:1.12rem;font-weight:800;line-height:1.2;margin-top:1px}
 .tl-s{font-size:.82rem;color:var(--muted);margin-top:1px;line-height:1.35}
 .tl-s b{color:var(--ink)}
+@media (min-width:700px){.top{padding-left:12px;padding-right:12px}.bar{margin:0;max-width:440px}}
+/* ===== canto esquerdo: chat + legenda ===== */
+#cantoEsq{position:fixed;left:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);z-index:900;display:flex;flex-direction:column;align-items:flex-start;gap:8px;pointer-events:none}
+#cantoEsq>*{pointer-events:auto}
+#cantoEsq .legend{position:static}
+.lg-t{display:flex;align-items:center;gap:8px}
+.lg-ajuda{margin-left:auto;background:rgba(255,255,255,.12);border:0;color:inherit;font:inherit;font-size:.64rem;font-weight:800;border-radius:999px;padding:2px 7px;cursor:pointer;text-transform:none;letter-spacing:0}
+@media (prefers-color-scheme: light){.lg-ajuda{background:rgba(0,0,0,.08)}}
+.chat{position:relative;display:flex;align-items:center;gap:7px;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.chat-foto{position:relative;width:44px;height:44px;border-radius:50%;overflow:hidden;border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.45);background:#0d5d6e;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.95rem;flex:none}
+.chat-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.chat-on{position:absolute;left:33px;top:33px;width:12px;height:12px;border-radius:50%;background:#25c25f;border:2px solid #fff}
+.chat-balao{background:#1fa458;color:#fff;font-size:.78rem;font-weight:800;padding:6px 11px;border-radius:12px 12px 12px 3px;box-shadow:0 2px 8px rgba(0,0,0,.35);white-space:nowrap;transform-origin:left center;transition:opacity .35s,transform .35s}
+.chat-balao.off{opacity:0;transform:scale(.6) translateX(-8px);pointer-events:none}
+body.modo #cantoEsq .chat{display:none}
+/* ===== mais facilitados ===== */
+.chip.on{background:var(--sea);color:#fff;border-color:var(--sea)}
+.adm-foot{flex-wrap:wrap}
+.adm-msg{flex:1 1 100%;order:-1}
+.adm-msg:empty{display:none}
+#admSalvar{margin-left:auto}
+#admDesfazer{transition:background .2s}
+#admDesfazer:disabled{opacity:.45}
+#admDesfazer.confirmar{background:#f08a24;color:#fff;font-weight:800}
+/* ===== Reserva: formulário do cliente ===== */
+.btn.reserva{background:#0d5d6e;color:#fff}
+#reserva{background:var(--paper);color:var(--ink);flex-direction:column}
+#reserva .adm-body{padding-bottom:20px}
+.rv-lote{background:var(--sea-soft);border-radius:12px;padding:10px 12px;margin-top:12px;font-size:.88rem;line-height:1.4}
+.rv-lote b{font-size:1rem}
+.rv-g{display:grid;gap:10px;margin-top:10px}
+.rv-g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:380px){.rv-g2{grid-template-columns:1fr}}
+.rv-aviso{font-size:.8rem;color:var(--muted);background:var(--sea-soft);border-radius:10px;padding:8px 10px;line-height:1.35}
+.rv-arq{display:flex;align-items:center;gap:10px;border:1.5px dashed var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;position:relative}
+.rv-arq.ok{border-style:solid;border-color:#1fa458;background:rgba(31,164,88,.08)}
+.rv-arq input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.rv-arq .ic{font-size:1.4rem;flex:none}
+.rv-arq b{display:block;font-size:.9rem}
+.rv-arq small{color:var(--muted);font-size:.76rem}
+.fl.err .inp{border-color:#d23f3f;box-shadow:0 0 0 2px rgba(210,63,63,.2)}
+.rv-arq.err{border-color:#d23f3f}
+.rv-ok{text-align:center;padding:30px 10px}
+.rv-ok .big{font-size:2.6rem}
+.rv-ok h3{margin:8px 0 6px;font-size:1.2rem}
+.rv-ok p{color:var(--muted);margin:0 0 16px;line-height:1.45}
+.rv-ok .btn{display:flex;margin:8px auto 0;max-width:330px}
+.rv-prog{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px;display:none}
+.rv-prog i{display:block;height:100%;width:0;background:var(--sea);transition:width .3s}
+.rv-aceite{margin-top:16px;font-size:.8rem;line-height:1.4;color:var(--muted);font-weight:500}
+.rv-aceite span{display:flex;gap:8px;align-items:flex-start}
+.rv-aceite input{margin-top:2px;width:18px;height:18px;flex:none;accent-color:var(--sea)}
+.rv-aceite.err span{color:#c0392b}
+.rv-parabens{font-size:1.25rem !important;line-height:1.3;letter-spacing:.01em}
+.rv-feliz{font-size:1.02rem !important;color:var(--ink) !important}
+.rv-resumo{margin:6px auto 4px;background:var(--sea-soft);border-radius:12px;padding:10px 14px;font-weight:800;font-size:.9rem;display:inline-block}
+.rv-ok{position:relative;overflow:hidden}
+.confete{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confete i{position:absolute;top:-14px;width:8px;height:14px;border-radius:2px;opacity:0;animation:cair 2.6s ease-in forwards}
+@keyframes cair{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(520px) rotate(540deg)}}
+@media (prefers-reduced-motion: reduce){.confete{display:none}}
+[hidden]{display:none !important}
 </style>
 </head>
 <body>
@@ -273,12 +339,19 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
   <div class="filters">
     <select id="fLot" aria-label="Escolher loteamento"></select>
     <select id="fQuadra" aria-label="Filtrar por quadra"></select>
+    <button class="chip" id="fBarato" aria-pressed="false">⭐ Mais facilitados</button>
     <label class="chip"><input type="checkbox" id="fDisp"> Só disponíveis</label>
     <label class="chip"><input type="checkbox" id="fPlanta" checked> Planta</label>
   </div>
 </div></div>
 
-<div class="legend" id="legenda" role="note" aria-label="Legenda"></div>
+<div id="cantoEsq">
+  <a class="chat" id="chat" target="_blank" rel="noopener" aria-label="Precisa de ajuda? Falar com o corretor no WhatsApp">
+    <span class="chat-foto"><b id="chatIni" aria-hidden="true">IT</b><img id="chatFoto" alt=""></span><span class="chat-on" aria-hidden="true"></span>
+    <span class="chat-balao off" id="chatBalao">Precisa de ajuda? 😁</span>
+  </a>
+  <div class="legend" id="legenda" role="note" aria-label="Legenda"></div>
+</div>
 
 <div class="ovl" id="senhaBox" role="dialog" aria-modal="true" aria-labelledby="senhaTit">
   <div class="dlg">
@@ -293,7 +366,7 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
 <div class="ovl" id="admin" role="dialog" aria-modal="true" aria-labelledby="admTit">
   <div class="adm-head"><h2 id="admTit">Área do corretor</h2><button class="close" id="admFechar" aria-label="Fechar">✕</button></div>
   <div class="adm-body" id="admCorpo"></div>
-  <div class="adm-foot"><div class="adm-msg" id="admMsg" aria-live="polite"></div><button class="btn pri" id="admSalvar">Salvar para todos</button></div>
+  <div class="adm-foot"><div class="adm-msg" id="admMsg" aria-live="polite"></div><button class="btn sec" id="admDesfazer" disabled>↶ Desfazer</button><button class="btn pri" id="admSalvar">Salvar para todos</button></div>
 </div>
 
 <div class="selbar" id="selbar" role="region" aria-label="Marcar lotes"><div class="in">
@@ -301,12 +374,12 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
   <div class="bb"><button class="btn sec" id="selCancel">Cancelar</button><button class="btn pri" id="selOk">Confirmar e salvar</button></div>
 </div></div>
 
-<button id="btnAjuda" aria-label="Como usar o mapa" title="Como usar">?</button>
 <div class="ovl" id="tuto" role="dialog" aria-modal="true" aria-labelledby="tuTit">
   <div class="tu">
     <div class="tu-cena" id="tuCena" aria-hidden="true"></div>
     <h3 id="tuTit"></h3><p id="tuTxt" aria-live="polite"></p>
     <div class="tu-pts" id="tuPts"></div>
+    <div class="tu-dica">deslize para o lado para passar</div>
     <div class="tu-rod">
       <label><input type="checkbox" id="tuNao"> Não mostrar novamente</label>
       <button class="tu-pular" id="tuPular">Pular</button>
@@ -314,6 +387,56 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
     </div>
   </div>
 </div>
+<div class="ovl" id="reserva" role="dialog" aria-modal="true" aria-labelledby="rvTit">
+  <div class="adm-head"><h2 id="rvTit">Reservar este lote</h2><button class="close" id="rvFechar" aria-label="Fechar">✕</button></div>
+  <div class="adm-body" id="rvCorpo">
+    <form id="rvForm" novalidate>
+      <div class="rv-lote" id="rvLote"></div>
+
+      <div class="sec"><h3>SEUS DADOS</h3><div class="rv-g">
+        <label class="fl">Nome completo<input class="inp" id="rvNome" autocomplete="name"></label>
+        <div class="rv-g2">
+          <label class="fl">CPF<input class="inp" id="rvCpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14"></label>
+          <label class="fl">Estado civil<select class="inp" id="rvCivil">
+            <option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option>
+          </select></label>
+        </div>
+        <div class="rv-g2">
+          <label class="fl">Telefone<input class="inp" id="rvTel" inputmode="tel" placeholder="(47) 99999-9999" autocomplete="tel" maxlength="15"></label>
+          <label class="fl">E-mail<input class="inp" id="rvEmail" type="email" inputmode="email" autocomplete="email"></label>
+        </div>
+      </div></div>
+
+      <div class="sec" id="rvConj" hidden><h3>DADOS DO CÔNJUGE</h3><div class="rv-g">
+        <label class="fl">Nome completo do cônjuge<input class="inp" id="rvCNome"></label>
+        <div class="rv-g2">
+          <label class="fl">CPF do cônjuge<input class="inp" id="rvCCpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14"></label>
+          <label class="fl">Telefone do cônjuge<input class="inp" id="rvCTel" inputmode="tel" placeholder="(47) 99999-9999" maxlength="15"></label>
+        </div>
+        <label class="fl">E-mail do cônjuge<input class="inp" id="rvCEmail" type="email" inputmode="email"></label>
+      </div></div>
+
+      <div class="sec"><h3>DOCUMENTOS</h3><p class="dica">Pode tirar foto na hora ou escolher da galeria. Aceita foto ou PDF.</p><div class="rv-g">
+        <label class="rv-arq" id="rvDocBox"><span class="ic">🪪</span><span><b>Documento com foto</b><small id="rvDocInfo">RG ou CNH, frente e verso</small></span>
+          <input type="file" id="rvDoc" accept="image/*,application/pdf" multiple aria-label="Documento com foto"></label>
+        <label class="rv-arq" id="rvCompBox"><span class="ic">🏠</span><span><b>Comprovante de residência</b><small id="rvCompInfo">conta de luz, água ou internet</small></span>
+          <input type="file" id="rvComp" accept="image/*,application/pdf" multiple aria-label="Comprovante de residência"></label>
+        <label class="rv-arq" id="rvCDocBox" hidden><span class="ic">🪪</span><span><b>Documento com foto do cônjuge</b><small id="rvCDocInfo">opcional</small></span>
+          <input type="file" id="rvCDoc" accept="image/*,application/pdf" multiple aria-label="Documento com foto do cônjuge"></label>
+      </div></div>
+
+      <div class="sec"><h3>2 CONTATOS DE REFERÊNCIA</h3>
+        <div class="rv-aviso">Não entraremos em contato, apenas se perdermos contato.</div>
+        <div class="rv-g">
+          <div class="rv-g2"><label class="fl">1- Nome<input class="inp" id="rvR1Nome"></label><label class="fl">Telefone<input class="inp" id="rvR1Tel" inputmode="tel" placeholder="(47) 99999-9999" maxlength="15"></label></div>
+          <div class="rv-g2"><label class="fl">2- Nome<input class="inp" id="rvR2Nome"></label><label class="fl">Telefone<input class="inp" id="rvR2Tel" inputmode="tel" placeholder="(47) 99999-9999" maxlength="15"></label></div>
+        </div></div>
+      <label class="rv-aceite fl" id="rvAceiteBox"><span><input type="checkbox" id="rvAceite"> Autorizo o envio dos meus dados e documentos à Irineu Imóveis, somente para a reserva e a negociação deste lote.</span></label>
+    </form>
+  </div>
+  <div class="adm-foot"><div class="adm-msg" id="rvMsg" aria-live="polite"></div><div class="rv-prog" id="rvProg"><i></i></div><button class="btn pri" id="rvEnviar" style="flex:1">Enviar documentos</button></div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="loteTitulo"><div class="card" id="card"></div></div>
@@ -327,7 +450,8 @@ const CONFIG = {
   salarioMinimo: 1621,
   whatsapp: "5547992422059",
   googleMapsKey: "AIzaSyBLNed6B7eZyrQxnIC9WeXGKDnTbbTIyZQ",
-  repo: "irineuimoveis/loteamentos"
+  repo: "irineuimoveis/loteamentos",
+  foto: "foto.jpg"   // sua foto do botão de ajuda (suba um arquivo com esse nome no GitHub)
 };
 /* ===================================================================== */
 
@@ -451,6 +575,7 @@ function aplicarConfig(c){
   if(numOk(+c.salarioMinimo) && +c.salarioMinimo > 0) CONFIG.salarioMinimo = +c.salarioMinimo;
   const w = String(c.whatsapp || '').replace(/\D/g, '');
   if(w.length >= 12) CONFIG.whatsapp = w;
+  if(typeof c.reservaUrl === 'string') CONFIG.reservaUrl = c.reservaUrl.trim();
   REGRAS = normalizaRegras(c);
 }
 
@@ -473,6 +598,7 @@ function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('
 /* =====================================================================
    MAPA
    ===================================================================== */
+let FACIL = null;   // {L, set} lotes mais facilitados em destaque
 let map, LOT = null, selected = null, camada = null, visiveis = [], placas = null, MODO = null;
 const fL = $('fLot'), fQ = $('fQuadra');
 
@@ -496,7 +622,7 @@ async function initMap(){
     $('cidade').textContent = 'Verifique a internet e recarregue a página.'; return;
   }
   map = new google.maps.Map($('map'), {
-    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:11, isFractionalZoomEnabled:true, mapTypeId:'hybrid', tilt:0,
+    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:9, isFractionalZoomEnabled:true, mapTypeId:'hybrid', tilt:0,
     streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy', mapTypeControl:false
   });
   LOTEAMENTOS.forEach(L => {
@@ -504,7 +630,7 @@ async function initMap(){
     if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
       {lat:L.planta.limites[0][0], lng:L.planta.limites[0][1]}, {lat:L.planta.limites[1][0], lng:L.planta.limites[1][1]}) : L.bounds, {opacity:.92, clickable:false});
   });
-  const area = new google.maps.LatLngBounds({lat:-26.60, lng:-48.95}, {lat:-26.25, lng:-48.55}); // Araquari e Barra do Sul
+  const area = new google.maps.LatLngBounds({lat:-27.20, lng:-49.40}, {lat:-25.90, lng:-48.30}); // norte de SC (Joinville, Araquari, Barra do Sul, Itajaí)
   LOTEAMENTOS.forEach(L => area.union(L.bounds));
   const ne = area.getNorthEast(), sw = area.getSouthWest();
   map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.04, south:sw.lat()-.04, east:ne.lng()+.04, west:sw.lng()-.04}, strictBounds:false}});
@@ -518,15 +644,24 @@ async function initMap(){
 }
 window.initMap = initMap;
 
+/* Enquadra sem nunca "explodir" para o mapa do Brasil (acontecia quando a margem era maior que a tela) */
+function enquadrar(b, pad){
+  const d = map.getDiv(), W = d.clientWidth, H = d.clientHeight;
+  if(!b || W < 150 || H < 150) return;
+  const p = typeof pad === 'number' ? {top:pad, bottom:pad, left:pad, right:pad} : Object.assign({top:0, bottom:0, left:0, right:0}, pad);
+  const k = Math.min(1, (H - 140) / Math.max(1, p.top + p.bottom), (W - 140) / Math.max(1, p.left + p.right));
+  if(k < 1) Object.keys(p).forEach(x => p[x] = Math.max(0, Math.floor(p[x] * k)));
+  map.fitBounds(b, p);
+}
 function verTodos(){
   const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds));
-  map.fitBounds(b, 60);
+  enquadrar(b, 60);
 }
 function escolher(id){
   const L = LOTEAMENTOS.find(x => x.id === id);
   closeCard();
   if(!L){ LOT = null; verTodos(); return; }
-  map.fitBounds(L.bounds, {top:105, bottom:60, left:14, right:14});
+  enquadrar(L.bounds, {top:105, bottom:60, left:14, right:14});
   google.maps.event.addListenerOnce(map, 'idle', () => { L.fitZoom = map.getZoom(); draw(); });
 }
 
@@ -607,7 +742,7 @@ function criarPlacas(){
           el.onclick = () => escolher(L.id);
         } else {
           el.innerHTML = svgPlaca(`${g.itens.length} loteamentos aqui`); el.setAttribute('aria-label', `${g.itens.length} loteamentos aqui, aproximar`);
-          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); map.fitBounds(b, {top:70, bottom:60, left:24, right:24}); };
+          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); enquadrar(b, {top:70, bottom:60, left:24, right:24}); };
         }
         el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.onclick(); } };
         google.maps.OverlayView.preventMapHitsAndGesturesFrom(el);
@@ -646,9 +781,11 @@ function criarCamada(){
           if(MODO && MODO.tipo === 'av' && !MODO.chaves.has(chaveLote(l))) return;
           if(!MODO && L === LOT && q && l[0] !== q) return;
           if(!MODO && only && situacao(l[3]) !== 'disponivel') return;
+          if(!MODO && FACIL && L === FACIL.L && !FACIL.set.has(l)) return;
           const p = pr.fromLatLngToDivPixel(L.ll[i]), x = p.x - x0, y = p.y - y0;
           if(x < -r || y < -r || x > CW + r || y > CH + r) return;
-          visiveis.push({L, l, x:p.x, y:p.y});
+          const naTela = x >= M && x <= M + W && y >= M && y <= M + H;
+          visiveis.push({L, l, x:p.x, y:p.y, naTela});
           cores[situacao(l[3])].push([x, y]);
           if(MODO && (MODO.tipo === 'av' ? aVistaDe(RASC, L, l) === MODO.novo : condIdDe(RASC, L, l) === MODO.condId)) marcados.push([x, y]);
         });
@@ -665,6 +802,11 @@ function criarCamada(){
         marcados.forEach(([x,y]) => { ctx.moveTo(x + r * 1.55, y); ctx.arc(x, y, r * 1.55, 0, 6.2832); });
         ctx.lineWidth = Math.max(2.5, r * .45); ctx.strokeStyle = '#16c25a'; ctx.stroke();
       }
+      // poucos lotes na tela (menos de 10): cada um ganha um alfinete de localização
+      const naTela = visiveis.filter(v => v.naTela);
+      const comPino = !MODO && naTela.length > 0 && naTela.length < 10;
+      visiveis.forEach(v => v.pino = comPino && v.naTela);
+      if(comPino) naTela.forEach(v => desenharPino(ctx, v.x - x0, v.y - y0 - r, SIT[situacao(v.l[3])].cor === SIT.disponivel.cor ? '#0d5d6e' : SIT[situacao(v.l[3])].cor));
       if(selected && !MODO && selected.L.ll){
         const p = pr.fromLatLngToDivPixel(selected.L.ll[selected.L.lotes.indexOf(selected.l)]);
         ctx.beginPath(); ctx.arc(p.x - x0, p.y - y0, r * 1.4, 0, 6.2832);
@@ -675,6 +817,15 @@ function criarCamada(){
   camada = new Camada(); camada.setMap(map);
 }
 
+function desenharPino(ctx, x, y, cor){
+  const R = 10, cy = y - 22;
+  ctx.beginPath(); ctx.moveTo(x, y);
+  ctx.bezierCurveTo(x - 3, cy + 12, x - R, cy + 6, x - R, cy);
+  ctx.arc(x, cy, R, Math.PI, 0);
+  ctx.bezierCurveTo(x + R, cy + 6, x + 3, cy + 12, x, y);
+  ctx.closePath(); ctx.fillStyle = cor; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, cy, 3.8, 0, 6.2832); ctx.fillStyle = '#fff'; ctx.fill();
+}
 function loteNoToque(e){
   const pr = camada && camada.getProjection();
   if(!pr || !visiveis.length) return null;
@@ -682,7 +833,11 @@ function loteNoToque(e){
   const mpp = 156543.03392 * Math.cos(map.getCenter().lat() * Math.PI/180) / Math.pow(2, map.getZoom());
   const lim = Math.max(14, 4 / mpp + 4);
   let melhor = null, dm = lim * lim;
-  visiveis.forEach(v => { const d = (v.x - p.x) ** 2 + (v.y - p.y) ** 2; if(d < dm){ dm = d; melhor = v; } });
+  visiveis.forEach(v => {
+    let d = (v.x - p.x) ** 2 + (v.y - p.y) ** 2;
+    if(v.pino) d = Math.min(d, (v.x - p.x) ** 2 + (v.y - 26 - p.y) ** 2);   // tocar no alfinete também abre
+    if(d < dm){ dm = d; melhor = v; }
+  });
   return melhor;
 }
 function tocarMapa(e){
@@ -699,9 +854,10 @@ function draw(){
   if(!MODO){
     const c = map.getCenter();
     const foco = LOTEAMENTOS.find(L => emFoco(L, z, vista) && L.bounds.contains(c)) || LOTEAMENTOS.find(L => emFoco(L, z, vista)) || null;
-    if(foco !== LOT){ LOT = foco; if(selected && selected.L !== LOT) closeCard(); cabecalho(); atualizarUrl(); }
+    if(foco !== LOT){ LOT = foco; if(selected && selected.L !== LOT) closeCard(); if(FACIL && FACIL.L !== LOT) desligarFacil(); cabecalho(); atualizarUrl(); }
   }
   $('topo').style.display = LOT && !MODO ? '' : 'none';
+  document.body.classList.toggle('modo', !!MODO);
   const mostrarPlanta = $('fPlanta').checked;
   LOTEAMENTOS.forEach(L => {
     if(!L.overlay) return;
@@ -725,8 +881,7 @@ function primeiroVencimento(hoje = new Date()){
 }
 /* ----- Card do lote ----- */
 function linkWa(texto){ return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`; }
-function open(LT, l){
-  selected = {L:LT, l}; if(camada) camada.draw();
+function montarCard(LT, l){
   const [quadra, num, area, st, lat, lng, pi] = l;
   const sit = SIT[situacao(st)], livre = situacao(st) === 'disponivel';
   const ent = entradaDe(LT, l), condL = condDe(REGRAS, LT, l);
@@ -773,12 +928,12 @@ function open(LT, l){
   if(livre){
     /* ----- 1. Entrada: duas opções, uma OU outra ----- */
     h += `<div class="block"><h3>1. ENTRADA <small>escolha uma das formas</small></h3>
-      <div class="opc">
+      <div class="opc" data-alvo="avista">
         <div class="opc-t">Entrada à vista</div>
         ${ent.aVista ? `<div class="opc-v">${brl(ent.aVista)}</div><div class="opc-s">pagamento único</div>` : botaoConsulta(waAVista)}
       </div>
       <div class="ou"><span>ou</span></div>
-      <div class="opc">
+      <div class="opc" data-alvo="facil">
         <div class="opc-t">Entrada facilitada</div>
         ${ent.cond ? `<ol class="tl">
           ${ent.sinal ? `<li><div class="tl-t">Sinal, à vista</div><div class="tl-v">${brl(ent.sinal)}</div></li>` : ''}
@@ -790,7 +945,7 @@ function open(LT, l){
     </div>`;
     /* ----- 2. Financiamento: linha do tempo ----- */
     if(p){
-      h += `<div class="block"><h3>2. FINANCIAMENTO <small>começa depois da entrada</small></h3><ol class="tl">`;
+      h += `<div class="block" data-alvo="fin"><h3>2. FINANCIAMENTO <small>começa depois da entrada</small></h3><ol class="tl">`;
       p.fases.forEach((f, i) => {
         h += `<li><div class="tl-t">${p.fases.length > 1 ? nEt(i) + ' etapa' : 'Parcelas'}</div>
           <div class="tl-v">${f.n}x de ${f.txt} salário mínimo</div>
@@ -799,14 +954,19 @@ function open(LT, l){
       h += `</ol></div>`;
     }
     h += `<div class="actions">
-        <a class="btn wa" href="${linkWa(linhas.join('\n'))}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
+        <a class="btn wa" data-alvo="wa" href="${linkWa(linhas.join('\n'))}" target="_blank" rel="noopener">Mandar esse para o WhatsApp do Corretor</a>
+        <button class="btn reserva" data-alvo="reserva" onclick="abrirReserva(selected.L, selected.l)">📄 Reservar este lote - Enviar documentos</button>
         <a class="btn gm" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">📍 Ir para a localização</a>
       </div>
       <div class="note">Parcela corrigida conforme o salário mínimo vigente. Valores sujeitos a confirmação com o corretor.${ATUALIZADO ? ' Disponibilidade atualizada em ' + esc(ATUALIZADO) + '.' : ''}</div>`;
   } else {
     h += `<div class="note" style="font-size:.9rem">Este lote está como <b>${sit.nome.toLowerCase()}</b>. Toque numa bolinha cinza para ver as opções livres.</div>`;
   }
-  $('card').innerHTML = h;
+  return h;
+}
+function open(LT, l){
+  selected = {L:LT, l}; if(camada) camada.draw();
+  $('card').innerHTML = montarCard(LT, l);
   $('sheet').classList.add('open');
 }
 function closeCard(){ if(!selected && !$('sheet').classList.contains('open')) return; selected = null; $('sheet').classList.remove('open'); if(camada) camada.draw(); }
@@ -818,9 +978,35 @@ fQ.onchange = () => {
   if(!fQ.value || !map || !LOT) return;
   const bb = new google.maps.LatLngBounds();
   LOT.lotes.filter(l => l[0] === fQ.value).forEach(l => bb.extend({lat:l[4], lng:l[5]}));
-  map.fitBounds(bb, {top:105, bottom:60, left:30, right:30});
+  enquadrar(bb, {top:105, bottom:60, left:30, right:30});
 };
 $('fDisp').onchange = () => camada && camada.draw();
+/* ----- Mais facilitados: os disponíveis com a menor entrada do loteamento ----- */
+function custoLote(L, l){
+  const av = aVistaDe(REGRAS, L, l) || Infinity;
+  const pi = l[6] != null ? parsePlano(L.planos[l[6]]) : null;
+  return [av, pi ? pi.fases[0].val : 99];
+}
+function desligarFacil(){ FACIL = null; $('fBarato').classList.remove('on'); $('fBarato').setAttribute('aria-pressed','false'); if(camada) camada.draw(); }
+$('fBarato').onclick = () => {
+  if(FACIL){ desligarFacil(); return; }
+  if(!LOT) return;
+  const disp = LOT.lotes.filter(l => situacao(l[3]) === 'disponivel' && aVistaDe(REGRAS, LOT, l))
+    .map(l => ({l, c: custoLote(LOT, l)})).sort((a, b) => a.c[0] - b.c[0] || a.c[1] - b.c[1]);
+  if(!disp.length){ toast('Nenhum lote disponível com entrada definida'); return; }
+  const faixas = [...new Set(disp.map(x => x.c[0]))];
+  let lim = faixas[0], escolhidos = disp.filter(x => x.c[0] <= lim);
+  if(escolhidos.length < 5 && faixas[1] != null){ lim = faixas[1]; escolhidos = disp.filter(x => x.c[0] <= lim); }
+  escolhidos = escolhidos.slice(0, 20);
+  FACIL = {L: LOT, set: new Set(escolhidos.map(x => x.l))};
+  $('fBarato').classList.add('on'); $('fBarato').setAttribute('aria-pressed','true');
+  closeCard();
+  const bb = new google.maps.LatLngBounds(); escolhidos.forEach(x => bb.extend({lat:x.l[4], lng:x.l[5]}));
+  enquadrar(bb, {top:110, bottom:70, left:40, right:40});
+  google.maps.event.addListenerOnce(map, 'idle', () => { if(map.getZoom() > 19) map.setZoom(19); });
+  toast(`${escolhidos.length} ${escolhidos.length === 1 ? 'lote mais facilitado' : 'lotes mais facilitados'} · entrada a partir de ${rs(escolhidos[0].c[0])}`);
+  if(camada) camada.draw();
+};
 $('fPlanta').onchange = draw;
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCard(); });
 $('btnShare').onclick = async () => {
@@ -832,7 +1018,19 @@ $('btnShare').onclick = async () => {
   try { await navigator.clipboard.writeText(url); toast('Link copiado!'); }
   catch(e){ prompt('Copie o link:', url); }
 };
-$('legenda').innerHTML = '<b class="lg-t">Legenda</b>' + Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
+/* ----- Botão de ajuda com a foto do corretor ----- */
+(function(){
+  const chat = $('chat'), img = $('chatFoto'), balao = $('chatBalao');
+  chat.href = linkWa('Oi, preciso tirar uma dúvida');
+  chat.addEventListener('click', () => { chat.href = linkWa('Oi, preciso tirar uma dúvida'); });
+  img.onerror = () => img.remove();
+  img.src = new URL(CONFIG.foto, BASE).href;
+  const mostrar = ms => { balao.classList.remove('off'); clearTimeout(mostrar.t); mostrar.t = setTimeout(() => balao.classList.add('off'), ms); };
+  window.mostrarBalao = mostrar;
+  setTimeout(() => { if(!$('tuto').classList.contains('open')) mostrar(9000); }, 3500);
+  setInterval(() => { if(!$('sheet').classList.contains('open')) mostrar(5000); }, 75000);
+})();
+$('legenda').innerHTML = '<b class="lg-t">Legenda<button class="lg-ajuda" id="btnAjuda" aria-label="Como usar o mapa">? Como usar</button></b>' + Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
 
 /* =====================================================================
    ÁREA DO CORRETOR — 5 toques na legenda + senha
@@ -848,9 +1046,41 @@ const novoId = () => 'c' + Date.now().toString(36) + Math.random().toString(36).
 const rLot = id => { const r = (RASC.lots[id] = RASC.lots[id] || {conds:[], porEntrada:{}, porLote:{}}); r.av = r.av || {porEntrada:{}, porLote:{}}; return r; };
 const ordQ = (a,b) => String(a).localeCompare(String(b), 'pt-BR', {numeric:true});
 const msgAdm = (t, cls) => { $('admMsg').className = 'adm-msg ' + (cls || ''); $('admMsg').textContent = t; };
-function marcarAlterado(){ alterado = true; msgAdm('Alterações ainda não salvas.'); }
+function marcarAlterado(semHistorico){ alterado = true; msgAdm('Alterações ainda não salvas.'); if(!semHistorico) registrar(); }
+/* ----- Desfazer: guarda cada estado anterior; 1º toque arma (laranja), 2º toque desfaz e salva ----- */
+let historico = [], estadoAtual = null, armado = null;
+const fotoRasc = () => JSON.stringify({salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, reservaUrl: RASC.reservaUrl, lots: RASC.lots});
+function registrar(){
+  if(!RASC) return;
+  const s = fotoRasc();
+  if(estadoAtual !== null && s !== estadoAtual){ historico.push(estadoAtual); if(historico.length > 60) historico.shift(); }
+  estadoAtual = s; atualizarDesfazer();
+}
+function atualizarDesfazer(){
+  const b = $('admDesfazer'); b.disabled = !historico.length;
+  if(!historico.length) desarmar();
+}
+function desarmar(){ clearTimeout(armado); armado = null; const b = $('admDesfazer'); b.classList.remove('confirmar'); b.textContent = '↶ Desfazer'; }
+function desfazer(){
+  if(!historico.length) return;
+  const s = historico.pop(), o = JSON.parse(s);
+  RASC.salarioMinimo = o.salarioMinimo; RASC.whatsapp = o.whatsapp; RASC.reservaUrl = o.reservaUrl || ''; RASC.lots = o.lots;
+  LOTEAMENTOS.forEach(L => rLot(L.id));
+  estadoAtual = fotoRasc(); editando = null; editAV = null; formEst = null;
+  alterado = true; atualizarDesfazer(); desenharAdmin(true);
+  salvarAdmin('↶ Desfeito e salvo! Para os clientes vale em até 5 minutos.');
+}
+$('admDesfazer').onclick = () => {
+  const b = $('admDesfazer'); if(!historico.length) return;
+  if(!armado){
+    b.classList.add('confirmar'); b.textContent = 'Toque de novo para desfazer';
+    armado = setTimeout(desarmar, 4000); return;
+  }
+  desarmar(); desfazer();
+};
 
-$('legenda').addEventListener('click', () => {
+$('legenda').addEventListener('click', e => {
+  if(e.target.closest('#btnAjuda')) return;
   if(MODO) return;
   const t = Date.now(); toques = toques.filter(x => t - x < 3000); toques.push(t);
   if(toques.length >= 5){ toques = []; pedirSenha(); }
@@ -877,11 +1107,13 @@ $('senhaInp').addEventListener('keydown', e => { if(e.key === 'Enter') conferirS
 
 function abrirAdmin(manter){
   if(!manter || !RASC){
-    RASC = {salarioMinimo: CONFIG.salarioMinimo, whatsapp: CONFIG.whatsapp,
+    RASC = {salarioMinimo: CONFIG.salarioMinimo, whatsapp: CONFIG.whatsapp, reservaUrl: CONFIG.reservaUrl || '',
       situacoes: Object.assign({}, REGRAS.situacoes), lots: JSON.parse(JSON.stringify(REGRAS.lots))};
     alterado = false; editando = null; msgAdm('');
+    LOTEAMENTOS.forEach(L => rLot(L.id)); estadoAtual = fotoRasc();
   }
   LOTEAMENTOS.forEach(L => rLot(L.id));
+  atualizarDesfazer(); desarmar();
   closeCard(); desenharAdmin();
   $('admin').classList.add('open');
 }
@@ -973,7 +1205,9 @@ function desenharAdmin(lerAntes){
     <div class="flds">
       <label class="fl">Salário mínimo (R$)<input class="inp" inputmode="decimal" data-cfg="salarioMinimo" value="${fmtN(RASC.salarioMinimo)}"></label>
       <label class="fl">Seu WhatsApp (55 + DDD + número)<input class="inp" inputmode="tel" data-cfg="whatsapp" value="${esc(RASC.whatsapp)}"></label>
-    </div></div>
+    </div>
+    <label class="fl" style="margin-top:10px">Endereço de recebimento das reservas (Apps Script)<input class="inp" inputmode="url" data-cfg="reservaUrl" value="${esc(RASC.reservaUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec" spellcheck="false"></label>
+    <div class="mini" style="margin-top:4px">Sem este endereço, o cliente gera o PDF e envia pelo WhatsApp.</div></div>
 
   <div class="sec"><h3>PENDÊNCIAS</h3>
     <p class="dica">Lotes <b>disponíveis</b> que ainda não têm entrada parcelada. No site eles mostram o botão <b>Consulte com o Corretor</b>.</p>
@@ -1040,10 +1274,11 @@ $('admCorpo').addEventListener('toggle', e => {
 
 $('admCorpo').addEventListener('input', e => {
   const k = e.target.dataset && e.target.dataset.cfg; if(!k) return;
-  RASC[k] = k === 'whatsapp' ? e.target.value.replace(/\D/g,'') : lerNum(e.target.value);
-  marcarAlterado();
+  RASC[k] = k === 'whatsapp' ? e.target.value.replace(/\D/g,'') : k === 'reservaUrl' ? e.target.value.trim() : lerNum(e.target.value);
+  marcarAlterado(true);
 });
 
+$('admCorpo').addEventListener('change', e => { if(e.target.dataset && e.target.dataset.cfg) registrar(); });
 $('admCorpo').addEventListener('change', e => {
   const s = e.target; if(!s.dataset || !s.dataset.sel) return;
   if(s.dataset.sel === 'entrada'){
@@ -1136,7 +1371,7 @@ function entrarModoAV(lid, k, novo){
   MODO = {tipo:'av', L, de, novo, chaves, copia: JSON.stringify(rLot(lid)), antes: Object.assign({}, rLot(lid).av.porLote)};
   $('admin').classList.remove('open'); closeCard();
   $('selbar').classList.add('on'); atualizarSelbar();
-  map.fitBounds(L.bounds, {top:20, bottom:150, left:16, right:16});
+  enquadrar(L.bounds, {top:20, bottom:150, left:16, right:16});
   draw();
 }
 
@@ -1146,7 +1381,7 @@ function entrarModo(lid, cid){
   MODO = {L, condId: cid, copia: JSON.stringify(rLot(lid))};
   $('admin').classList.remove('open'); closeCard();
   $('selbar').classList.add('on'); atualizarSelbar();
-  map.fitBounds(L.bounds, {top:20, bottom:150, left:16, right:16});
+  enquadrar(L.bounds, {top:20, bottom:150, left:16, right:16});
   draw();
 }
 function atualizarSelbar(){
@@ -1178,7 +1413,7 @@ function alternarMarcacao(L, l){
 }
 function sairModo(){ MODO = null; $('selbar').classList.remove('on'); draw(); abrirAdmin(true); }
 $('selCancel').onclick = () => { RASC.lots[MODO.L.id] = JSON.parse(MODO.copia); sairModo(); };
-$('selOk').onclick = () => { if(MODO && MODO.tipo === 'av') limparAv(MODO.L); sairModo(); salvarAdmin(); };
+$('selOk').onclick = () => { registrar(); if(MODO && MODO.tipo === 'av') limparAv(MODO.L); sairModo(); salvarAdmin(); };
 
 /* ----- Salvar no GitHub ----- */
 function b64(s){ let bin = ''; new TextEncoder().encode(s).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); }
@@ -1190,9 +1425,9 @@ function pacote(){
     const av = normAv(r.av);
     if(r.conds.length || Object.keys(porLote).length || Object.keys(av.porEntrada).length || Object.keys(av.porLote).length) lots[id] = {conds: r.conds, porEntrada, porLote, av};
   });
-  return {salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, situacoes: RASC.situacoes, lots, salvoEm: new Date().toISOString()};
+  return {salarioMinimo: RASC.salarioMinimo, whatsapp: RASC.whatsapp, reservaUrl: RASC.reservaUrl || '', situacoes: RASC.situacoes, lots, salvoEm: new Date().toISOString()};
 }
-async function salvarAdmin(){
+async function salvarAdmin(msgOk){
   if(!(RASC.salarioMinimo > 0)) return msgAdm('Confira o valor do salário mínimo.', 'err');
   if(String(RASC.whatsapp).length < 12) return msgAdm('Confira o WhatsApp: 55 + DDD + número.', 'err');
   const token = localStorage.getItem('gh_token') || ($('admToken') ? $('admToken').value.trim() : '');
@@ -1214,12 +1449,12 @@ async function salvarAdmin(){
     localStorage.setItem('gh_token', token);
     aplicarConfig(conteudo); alterado = false;
     desenharAdmin(); draw();
-    msgAdm('✓ Salvo! Para você já vale agora; para os clientes, em até 5 minutos.', 'ok');
+    msgAdm(typeof msgOk === 'string' ? msgOk : '✓ Salvo! Para você já vale agora; para os clientes, em até 5 minutos.', 'ok');
   } catch(e){
     msgAdm(e.message && !/fetch|network/i.test(e.message) ? e.message : 'Sem conexão com o GitHub. Verifique a internet e tente de novo.', 'err');
   } finally { $('admSalvar').disabled = false; $('selOk').disabled = false; }
 }
-$('admSalvar').onclick = salvarAdmin;
+$('admSalvar').onclick = () => salvarAdmin();
 $('admFechar').onclick = () => {
   if(alterado && !confirm('Fechar sem salvar as alterações?')) return;
   alterado = false; RASC = null; $('admin').classList.remove('open');
@@ -1227,60 +1462,361 @@ $('admFechar').onclick = () => {
 
 
 /* =====================================================================
-   COMO USAR — instruções animadas (aparecem na 1ª visita)
+   COMO USAR — instruções animadas com a interface de verdade.
+   Deslize para o lado para passar; aparece na 1ª visita.
    ===================================================================== */
-function passosTutorial(){
-  const sm = CONFIG.salarioMinimo;
+function exemploTutorial(){
+  const pref = LOTEAMENTOS.find(L => /aurora/i.test(L.id + ' ' + L.nome));
+  const ordem = pref ? [pref, ...LOTEAMENTOS.filter(x => x !== pref)] : LOTEAMENTOS;
+  for(const L of ordem){
+    const l = L.lotes.find(l => situacao(l[3]) === 'disponivel' && entradaDe(L, l).aVista && entradaDe(L, l).cond && l[6] != null);
+    if(l) return {L, l};
+  }
+  for(const L of ordem){
+    const l = L.lotes.find(l => situacao(l[3]) === 'disponivel' && entradaDe(L, l).aVista) || L.lotes.find(l => situacao(l[3]) === 'disponivel');
+    if(l) return {L, l};
+  }
+  return {L: LOTEAMENTOS[0], l: LOTEAMENTOS[0].lotes[0]};
+}
+/* posiciona pontos (lat, lng) dentro de uma caixa W x H */
+function projetar(pts, W, H, pad){
+  const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
+  const la0 = Math.min(...lats), la1 = Math.max(...lats), lo0 = Math.min(...lngs), lo1 = Math.max(...lngs);
+  const k = Math.cos(((la0 + la1) / 2) * Math.PI / 180);
+  const w = Math.max((lo1 - lo0) * k, 1e-6), hh = Math.max(la1 - la0, 1e-6);
+  const s = Math.min((W - 2*pad) / w, (H - 2*pad) / hh);
+  const ox = (W - w * s) / 2, oy = (H - hh * s) / 2;
+  return pts.map(p => [ox + (p[1] - lo0) * k * s, oy + (la1 - p[0]) * s]);
+}
+function cenaPlacas(W, H, alvoL){
+  const pos = projetar(LOTEAMENTOS.map(L => L.centro), W, H, 46);
+  const it = LOTEAMENTOS.map((L, i) => ({L, x: pos[i][0], y: pos[i][1], w: (L.placaW || 160) * .46 + 6, h: 34}));
+  for(let n = 0; n < 60; n++) for(const a of it) for(const b of it){        // afasta placas encostadas
+    if(a === b) continue;
+    const dx = b.x - a.x, dy = b.y - a.y, ox = (a.w + b.w) / 2 - Math.abs(dx), oy = (a.h + b.h) / 2 - Math.abs(dy);
+    if(ox > 0 && oy > 0){ if(ox < oy * 1.6){ const m = ox / 2 * Math.sign(dx || 1); a.x -= m; b.x += m; } else { const m = oy / 2 * Math.sign(dy || 1); a.y -= m; b.y += m; } }
+  }
+  it.forEach(o => { o.x = Math.min(W - o.w / 2, Math.max(o.w / 2, o.x)); o.y = Math.min(H - 20, Math.max(20, o.y)); });
+  const alvo = it.find(o => o.L === alvoL) || it[0];
+  return `<div class="tu-mapa"></div><div class="tu-rio"></div>` +
+    it.map((o, i) => `<div class="tu-plq${o === alvo ? ' alvo' : ''}" style="left:${o.x}px;top:${o.y}px;animation-delay:${.15 + i * .12}s${o === alvo ? `,${2.2}s` : ''}">${o.L.placaSvg}</div>`).join('') +
+    `<div class="tu-onda" style="left:${alvo.x}px;top:${alvo.y}px"></div><div class="tu-mao" style="left:${alvo.x}px;top:${alvo.y}px">👆</div>`;
+}
+function cenaLotes(W, H, ex, comCard){
+  const L = ex.L, pos = projetar(L.lotes.map(l => [l[4], l[5]]), W, H, 18);
+  const i = L.lotes.indexOf(ex.l), [ax, ay] = pos[i];
+  const r = Math.max(1.3, Math.min(3, 520 / Math.max(L.lotes.length, 1) ** .9));
+  const svg = `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${pos.map((p, j) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r}" fill="${SIT[situacao(L.lotes[j][3])].cor}" stroke="#fff" stroke-width="${r > 3 ? .8 : 0}"/>`).join('')}</svg>`;
+  if(!comCard) return `<div class="tu-mapa"></div><div class="tu-lotes" style="transform-origin:${ax}px ${ay}px">${svg}</div>
+    <div class="tu-dedo d1" style="left:${ax}px;top:${ay}px"></div><div class="tu-dedo d2" style="left:${ax}px;top:${ay}px"></div>`;
+  // já aproximado no lote de exemplo
+  const z = 2.8, cx = W / 2, cy = H * .32;
+  return `<div class="tu-mapa"></div><div class="tu-lotes" style="transform-origin:0 0;transform:translate(${cx - ax * z}px,${cy - ay * z}px) scale(${z})">${svg}</div>
+    <div class="tu-alvo" style="left:${cx}px;top:${cy}px"></div><div class="tu-onda" style="left:${cx}px;top:${cy}px"></div><div class="tu-mao" style="left:${cx}px;top:${cy}px">👆</div>
+    <div class="tu-sobe"><div class="tu-cardw" style="transform:scale(${(W - 16) / 360})"><div class="card">${montarCard(ex.L, ex.l)}</div></div></div>`;
+}
+function passosTutorial(ex){
+  const nomeEx = ex.L.nome.replace(/^Loteamento\s+/i, ''), temFacil = !!entradaDe(ex.L, ex.l).cond;
   return [
-    {t:'Escolha o loteamento', d:'Toque na placa dourada com o nome do loteamento. O mapa vai direto para ele.',
-     cena:`<div class="tu-mapa"></div><div class="tu-plq">${svgPlaca('Loteamento','Exemplo')}</div><div class="tu-onda"></div><div class="tu-mao">👆</div>`, cls:'c-placa'},
-    {t:'Aproxime com dois dedos', d:'Faça o movimento de pinça: abra os dedos para ver os lotes de perto e feche para afastar.',
-     cena:'<div class="tu-mapa"></div><div class="tu-dedo d1"></div><div class="tu-dedo d2"></div>', cls:'c-pinca'},
-    {t:'Arraste para passear', d:'Com um dedo, arraste o mapa para ver as ruas e os lotes ao redor.',
-     cena:'<div class="tu-mapa"></div><div class="tu-dedo"></div>', cls:'c-arrasta'},
-    {t:'Toque num lote', d:'Cada bolinha é um terreno. As cinzas estão disponíveis. Toque nela para abrir as condições.',
-     cena:`<div class="tu-mapa"></div><div class="tu-alvo"></div><div class="tu-mao">👆</div>
-       <div class="tu-mini"><b>Lote 12</b> · Quadra A<br>Entrada à vista R$ 35.000</div>`, cls:'c-lote'},
-    {t:'Aqui estão as condições', d:'O card mostra a entrada à vista, a entrada parcelada e o financiamento, já com o valor de hoje. Toque no botão verde para receber tudo no WhatsApp do corretor.',
-     cena:`<div class="ex-card"><span class="tag">EXEMPLO</span><h4>Lote 12 · Quadra A</h4>
-        <div class="s">ENTRADA</div>
-        <div class="r"><span>À vista</span><b>R$ 35.000</b></div>
-        <div class="r"><span>Parcelada</span><b>R$ 5.000 de sinal + 10x de R$ 3.000</b></div>
-        <div class="s">PARCELAMENTO</div>
-        <div class="r"><span>240x de 1 salário mínimo</span><b>${brl(sm)} hoje</b></div>
-        <div class="ex-wa">Mandar esse para o WhatsApp do Corretor</div></div>`, cls:'c-cond'}
+    {t:'Vários loteamentos pela cidade', d:'Cada placa dourada é um loteamento da Irineu Imóveis. Toque numa placa e o mapa vai direto para ela.', cena:'placas', cls:'tap'},
+    {t:'Aproxime com dois dedos', d:`Abra os dedos em pinça para ver os lotes de perto, como aqui no ${nomeEx}. Feche os dedos para afastar.`, cena:'pinca', cls:'c-pinca'},
+    {t:'Toque num lote', d:'Cada bolinha é um terreno, e as cinzas estão disponíveis. Toque numa delas e as condições aparecem.', cena:'toque', cls:'tap'},
+    {t:'Entrada à vista', d:'Aqui você vê a entrada à vista do terreno: um pagamento único.', cena:'card', alvo:'avista', rot:'Aqui você vê a entrada à vista do terreno'},
+    {t:'Entrada facilitada', d: temFacil ? 'Aqui você vê essa mesma entrada de forma facilitada, direto com a imobiliária: um sinal e o restante em parcelas, em etapas.' : 'Aqui fica a mesma entrada de forma facilitada, direto com a imobiliária. Quando aparecer "Consulte com o Corretor", é só tocar.', cena:'card', alvo:'facil', rot:'Aqui a mesma entrada, facilitada direto com a imobiliária'},
+    {t:'Financiamento', d:'Depois da entrada vem o financiamento, também em etapas, com o valor da parcela de hoje calculado pelo salário mínimo.', cena:'card', alvo:'fin', rot:'Depois da entrada: o financiamento'},
+    {t:'Gostou? Fale com o corretor', d:'Toque no botão verde para receber as condições do lote no WhatsApp do corretor.', cena:'card', alvo:'wa', rot:'Toque aqui para receber no WhatsApp'},
+    {t:'Mais atalhos', d:'Use estes atalhos sempre que quiser. Para ver estas instruções de novo, toque em "? Como usar" na legenda.', cena:'fim'}
   ];
 }
-let tuIdx = 0, tuPassos = [];
+let tuIdx = 0, tuPassos = [], tuEx = null;
 function mostrarTutorial(forcar){
   if(!forcar && localStorage.getItem('tutorialOk') === '1') return;
-  if(MODO || $('admin').classList.contains('open')) return;
-  tuPassos = passosTutorial(); tuIdx = 0;
+  if(!LOTEAMENTOS.length || MODO || $('admin').classList.contains('open')) return;
+  tuEx = exemploTutorial(); tuPassos = passosTutorial(tuEx); tuIdx = 0;
   $('tuNao').checked = localStorage.getItem('tutorialOk') === '1';
   $('tuto').classList.add('open'); passoTutorial();
   setTimeout(() => $('tuProx').focus(), 60);
 }
 function passoTutorial(){
-  const p = tuPassos[tuIdx];
-  const cena = $('tuCena'); cena.className = 'tu-cena ' + p.cls; cena.innerHTML = p.cena;
+  const p = tuPassos[tuIdx], cena = $('tuCena'), W = cena.clientWidth || 400, H = cena.clientHeight || 250;
+  const cardJa = p.cena === 'card' && cena.querySelector('.tu-cardw.fixo');
+  if(!cardJa){
+    cena.className = 'tu-cena ' + (p.cls || '') + (p.cena === 'card' || p.cena === 'fim' ? ' c-card' : '');
+    if(p.cena === 'placas') cena.innerHTML = cenaPlacas(W, H, tuEx.L);
+    else if(p.cena === 'pinca') cena.innerHTML = cenaLotes(W, H, tuEx, false);
+    else if(p.cena === 'toque') cena.innerHTML = cenaLotes(W, H, tuEx, true);
+    else if(p.cena === 'card') cena.innerHTML = `<div class="tu-cardw fixo"><div class="card">${montarCard(tuEx.L, tuEx.l)}</div></div>
+      <svg class="tu-seta" viewBox="0 0 62 38" aria-hidden="true"><path d="M58 19H12M24 6L10 19l14 13" fill="none" stroke="#f2c230" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="tu-rotulo"></div>`;
+    else cena.innerHTML = `<div class="tu-fim">
+      <div class="linha"><span class="ic">⭐</span><span><b>Mais facilitados</b>No topo do loteamento: mostra os lotes disponíveis com a menor entrada.</span></div>
+      <div class="linha"><span class="ic wa">💬</span><span><b>Precisa de ajuda?</b>Toque na foto do corretor, no canto da tela, e fale direto pelo WhatsApp.</span></div>
+      <div class="linha"><span class="ic">📍</span><span><b>Ir para a localização</b>No card do lote: abre o Google Maps com a rota até o terreno.</span></div></div>`;
+  }
+  if(p.cena === 'card') focarCard(p);
   $('tuTit').textContent = p.t; $('tuTxt').textContent = p.d;
   $('tuPts').innerHTML = tuPassos.map((_, i) => `<i class="${i === tuIdx ? 'on' : ''}"></i>`).join('');
   $('tuProx').textContent = tuIdx === tuPassos.length - 1 ? 'Começar' : 'Próximo';
   $('tuPular').style.visibility = tuIdx === tuPassos.length - 1 ? 'hidden' : '';
 }
+function focarCard(p){
+  const cena = $('tuCena'), wrap = cena.querySelector('.tu-cardw'), W = cena.clientWidth, H = cena.clientHeight;
+  const k = W / 360;
+  wrap.querySelectorAll('.alvo-on').forEach(e => e.classList.remove('alvo-on'));
+  const alvo = wrap.querySelector(`[data-alvo="${p.alvo}"]`);
+  if(!alvo){ wrap.style.transform = `scale(${k})`; return; }
+  alvo.classList.add('alvo-on');
+  const topo = alvo.offsetTop + (alvo.offsetParent && alvo.offsetParent !== wrap.firstElementChild ? alvo.offsetParent.offsetTop : 0);
+  const altura = alvo.offsetHeight;
+  const desloc = Math.max(0, Math.min(topo * k - (H - altura * k) / 2, wrap.offsetHeight * k - H));
+  wrap.style.transform = `translateY(${-desloc}px) scale(${k})`;
+  const meio = topo * k - desloc + altura * k / 2;
+  const seta = cena.querySelector('.tu-seta'), rot = cena.querySelector('.tu-rotulo');
+  seta.style.left = (W - 70) + 'px'; seta.style.top = (meio - 19) + 'px';
+  rot.textContent = p.rot;
+  const acima = meio - altura * k / 2 - 40;
+  rot.style.top = (acima > 4 ? acima : Math.min(H - 44, meio + altura * k / 2 + 8)) + 'px';
+}
+function irTutorial(d){
+  const n = tuIdx + d;
+  if(n < 0) return;
+  if(n >= tuPassos.length){ fecharTutorial(); return; }
+  tuIdx = n; passoTutorial();
+}
 function fecharTutorial(){
   if($('tuNao').checked) localStorage.setItem('tutorialOk', '1'); else localStorage.removeItem('tutorialOk');
   $('tuto').classList.remove('open');
+  setTimeout(() => window.mostrarBalao && window.mostrarBalao(8000), 1200);
 }
-$('tuProx').onclick = () => { if(tuIdx < tuPassos.length - 1){ tuIdx++; passoTutorial(); } else fecharTutorial(); };
+$('tuProx').onclick = () => irTutorial(1);
 $('tuPular').onclick = fecharTutorial;
-$('btnAjuda').onclick = () => mostrarTutorial(true);
+$('btnAjuda').onclick = e => { e.stopPropagation(); mostrarTutorial(true); };
+// deslizar: direita → esquerda avança, esquerda → direita volta
+(function(){
+  const box = document.querySelector('#tuto .tu'); let x0 = null, y0 = 0;
+  box.addEventListener('pointerdown', e => { if(e.target.closest('button,label,input')) return; x0 = e.clientX; y0 = e.clientY; });
+  box.addEventListener('pointerup', e => {
+    if(x0 === null) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+    if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) irTutorial(dx < 0 ? 1 : -1);
+  });
+  box.addEventListener('pointercancel', () => x0 = null);
+})();
 document.addEventListener('keydown', e => {
   if(!$('tuto').classList.contains('open')) return;
   if(e.key === 'Escape') fecharTutorial();
-  if(e.key === 'ArrowRight') $('tuProx').click();
-  if(e.key === 'ArrowLeft' && tuIdx > 0){ tuIdx--; passoTutorial(); }
+  if(e.key === 'ArrowRight') irTutorial(1);
+  if(e.key === 'ArrowLeft') irTutorial(-1);
 });
+
+/* =====================================================================
+   RESERVA — o cliente envia dados e documentos; vira um PDF só
+   e chega para o corretor (Google Drive + e-mail via Apps Script).
+   ===================================================================== */
+let RV = null;   // {L, l}
+const soDig = s => String(s || '').replace(/\D/g, '');
+const fmtCpf = s => { const d = soDig(s).slice(0, 11); return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2'); };
+const fmtTel = s => { const d = soDig(s).slice(0, 11); if(d.length <= 2) return d.replace(/(\d+)/, '($1'); if(d.length <= 6) return d.replace(/(\d{2})(\d+)/, '($1) $2'); if(d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d+)/, '($1) $2-$3'); return d.replace(/(\d{2})(\d{5})(\d+)/, '($1) $2-$3'); };
+function cpfValido(c){
+  c = soDig(c); if(c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  for(let t = 9; t < 11; t++){ let s = 0; for(let i = 0; i < t; i++) s += +c[i] * (t + 1 - i); if(((s * 10) % 11) % 10 !== +c[t]) return false; }
+  return true;
+}
+const emailValido = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e).trim());
+const casado = () => $('rvCivil').value === 'Casado(a)';
+
+function abrirReserva(LT, l){
+  RV = {L: LT, l};
+  const ent = entradaDe(LT, l);
+  $('rvLote').innerHTML = `<b>Lote ${esc(l[1])} · Quadra ${esc(l[0])}</b><br>${esc(LT.nome)}${ent.aVista ? ' · entrada à vista ' + brl(ent.aVista) : ''}`;
+  $('rvCorpo').scrollTop = 0; $('rvForm').hidden = false;
+  const ok = $('rvCorpo').querySelector('.rv-ok'); if(ok) ok.remove();
+  $('reserva').querySelector('.adm-foot').hidden = false;
+  rvMsg(''); $('reserva').classList.add('open');
+}
+function rvMsg(t, cls){ const m = $('rvMsg'); m.className = 'adm-msg ' + (cls || ''); m.textContent = t; }
+$('rvFechar').onclick = () => $('reserva').classList.remove('open');
+// máscaras
+['rvCpf','rvCCpf'].forEach(id => $(id).addEventListener('input', e => e.target.value = fmtCpf(e.target.value)));
+['rvTel','rvCTel','rvR1Tel','rvR2Tel'].forEach(id => $(id).addEventListener('input', e => e.target.value = fmtTel(e.target.value)));
+$('rvCivil').onchange = () => { $('rvConj').hidden = !casado(); $('rvCDocBox').hidden = !casado(); };
+[['rvDoc','rvDocInfo','RG ou CNH, frente e verso'],['rvComp','rvCompInfo','conta de luz, água ou internet'],['rvCDoc','rvCDocInfo','opcional']].forEach(([id, info, pad]) => {
+  $(id).addEventListener('change', () => {
+    const n = $(id).files.length, box = $(id).closest('.rv-arq');
+    box.classList.toggle('ok', n > 0); box.classList.remove('err');
+    $(info).textContent = n ? `✓ ${n} ${n === 1 ? 'arquivo escolhido' : 'arquivos escolhidos'} · toque para trocar` : pad;
+  });
+});
+$('rvForm').addEventListener('input', e => { const f = e.target.closest('.fl'); if(f) f.classList.remove('err'); });
+$('rvAceite').addEventListener('change', () => $('rvAceiteBox').classList.remove('err'));
+
+function validarReserva(){
+  const erros = [];
+  const marca = (id, ok, txt) => { const el = $(id), box = el.closest('.fl') || el.closest('.rv-arq'); box.classList.toggle('err', !ok); if(!ok) erros.push({el, txt}); };
+  marca('rvNome', $('rvNome').value.trim().split(/\s+/).length >= 2, 'Digite seu nome completo.');
+  marca('rvCpf', cpfValido($('rvCpf').value), 'Confira o CPF.');
+  marca('rvCivil', !!$('rvCivil').value, 'Selecione o estado civil.');
+  marca('rvTel', soDig($('rvTel').value).length >= 10, 'Confira o telefone.');
+  marca('rvEmail', emailValido($('rvEmail').value), 'Confira o e-mail.');
+  if(casado()){
+    marca('rvCNome', $('rvCNome').value.trim().split(/\s+/).length >= 2, 'Digite o nome completo do cônjuge.');
+    marca('rvCCpf', cpfValido($('rvCCpf').value), 'Confira o CPF do cônjuge.');
+    marca('rvCTel', soDig($('rvCTel').value).length >= 10, 'Confira o telefone do cônjuge.');
+    marca('rvCEmail', emailValido($('rvCEmail').value), 'Confira o e-mail do cônjuge.');
+  }
+  marca('rvDoc', $('rvDoc').files.length > 0, 'Envie o documento com foto.');
+  marca('rvComp', $('rvComp').files.length > 0, 'Envie o comprovante de residência.');
+  marca('rvR1Nome', !!$('rvR1Nome').value.trim(), 'Preencha o 1º contato de referência.');
+  marca('rvR1Tel', soDig($('rvR1Tel').value).length >= 10, 'Confira o telefone do 1º contato.');
+  marca('rvR2Nome', !!$('rvR2Nome').value.trim(), 'Preencha o 2º contato de referência.');
+  marca('rvR2Tel', soDig($('rvR2Tel').value).length >= 10, 'Confira o telefone do 2º contato.');
+  marca('rvAceite', $('rvAceite').checked, 'Marque a autorização para enviar os documentos.');
+  if(erros.length){ rvMsg(erros[0].txt + (erros.length > 1 ? ` (e mais ${erros.length - 1} campo${erros.length > 2 ? 's' : ''})` : ''), 'err'); erros[0].el.scrollIntoView({block:'center', behavior:'smooth'}); setTimeout(() => erros[0].el.focus({preventScroll:true}), 300); }
+  return !erros.length;
+}
+function dadosReserva(){
+  const L = RV.L, l = RV.l, ent = entradaDe(L, l);
+  const d = {
+    loteamento: L.nome, quadra: l[0], lote: l[1], entrada: ent.aVista ? brl(ent.aVista) : '',
+    nome: $('rvNome').value.trim(), cpf: fmtCpf($('rvCpf').value), civil: $('rvCivil').value,
+    telefone: $('rvTel').value.trim(), email: $('rvEmail').value.trim(),
+    conjuge: casado() ? {nome: $('rvCNome').value.trim(), cpf: fmtCpf($('rvCCpf').value), telefone: $('rvCTel').value.trim(), email: $('rvCEmail').value.trim()} : null,
+    referencias: [{nome: $('rvR1Nome').value.trim(), telefone: $('rvR1Tel').value.trim()}, {nome: $('rvR2Nome').value.trim(), telefone: $('rvR2Tel').value.trim()}],
+    enviadoEm: new Date().toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'})
+  };
+  const t = [
+    'RESERVA DE LOTE',
+    `Loteamento: ${d.loteamento}`, `Quadra: ${d.quadra}`, `Lote: ${d.lote}`, d.entrada ? `Entrada à vista: ${d.entrada}` : null, '',
+    'CLIENTE', `Nome: ${d.nome}`, `CPF: ${d.cpf}`, `Estado civil: ${d.civil}`, `Telefone: ${d.telefone}`, `E-mail: ${d.email}`,
+    d.conjuge ? '' : null, d.conjuge ? 'CÔNJUGE' : null, d.conjuge ? `Nome: ${d.conjuge.nome}` : null, d.conjuge ? `CPF: ${d.conjuge.cpf}` : null,
+    d.conjuge ? `Telefone: ${d.conjuge.telefone}` : null, d.conjuge ? `E-mail: ${d.conjuge.email}` : null, '',
+    'CONTATOS DE REFERÊNCIA', `1- ${d.referencias[0].nome} · ${d.referencias[0].telefone}`, `2- ${d.referencias[1].nome} · ${d.referencias[1].telefone}`, '',
+    `Enviado em: ${d.enviadoEm}`
+  ].filter(x => x !== null);
+  d.texto = t.join('\n');
+  return d;
+}
+
+/* ----- PDF: 1ª página com os dados + uma página por documento ----- */
+function carregarScript(src){
+  return new Promise((ok, erro) => { if(document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => erro(new Error('script')); document.head.appendChild(s); });
+}
+function lerArquivo(f){ return new Promise((ok, erro) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = erro; r.readAsArrayBuffer(f); }); }
+async function imagemJpeg(f){
+  const url = URL.createObjectURL(f);
+  try {
+    const img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = url; });
+    const max = 1800, k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise(ok => c.toBlob(ok, 'image/jpeg', .82));
+    return {bytes: await blob.arrayBuffer(), w: c.width, h: c.height};
+  } finally { URL.revokeObjectURL(url); }
+}
+const latin = s => String(s).normalize('NFC').replace(/[–—]/g, '-').replace(/·/g, '-').replace(/[^\x20-\x7E\u00A0-\u00FF\n]/g, '');
+async function montarPdf(d, progresso){
+  await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
+  const {PDFDocument, StandardFonts, rgb} = window.PDFLib;
+  const pdf = await PDFDocument.create();
+  const fonte = await pdf.embedFont(StandardFonts.Helvetica), negrito = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const A4 = [595.28, 841.89], M = 50;
+  // página de dados
+  let pg = pdf.addPage(A4), y = A4[1] - M;
+  pg.drawRectangle({x: 0, y: A4[1] - 92, width: A4[0], height: 92, color: rgb(.05, .36, .43)});
+  pg.drawText('RESERVA DE LOTE', {x: M, y: A4[1] - 48, size: 20, font: negrito, color: rgb(1, 1, 1)});
+  pg.drawText(latin(`${d.loteamento} - Quadra ${d.quadra} - Lote ${d.lote}`), {x: M, y: A4[1] - 72, size: 12, font: fonte, color: rgb(1, 1, 1)});
+  y = A4[1] - 125;
+  const linha = (txt, bold, size = 11, gap = 16) => {
+    const f = bold ? negrito : fonte, palavras = latin(txt).split(' '); let atual = '';
+    const escrever = s => { if(y < M + 20){ pg = pdf.addPage(A4); y = A4[1] - M; } pg.drawText(s, {x: M, y, size, font: f, color: rgb(.08, .17, .2)}); y -= gap; };
+    palavras.forEach(p => { const t = atual ? atual + ' ' + p : p; if(f.widthOfTextAtSize(t, size) > A4[0] - 2*M){ escrever(atual); atual = p; } else atual = t; });
+    escrever(atual);
+  };
+  d.texto.split('\n').slice(1).forEach(t => {
+    if(!t) { y -= 8; return; }
+    const titulo = /^[A-ZÇÃÕÂÊÔÁÉÍÓÚ ]+$/.test(t);
+    linha(t, titulo, titulo ? 12 : 11, titulo ? 18 : 16);
+  });
+  // documentos
+  const grupos = [['Documento com foto', $('rvDoc').files], ['Comprovante de residência', $('rvComp').files]];
+  if(d.conjuge && $('rvCDoc').files.length) grupos.push(['Documento com foto do cônjuge', $('rvCDoc').files]);
+  const total = grupos.reduce((s, g) => s + g[1].length, 0); let feitos = 0;
+  for(const [nome, files] of grupos){
+    for(const f of files){
+      const rot = latin(`${nome}${files.length > 1 ? ` (${[...files].indexOf(f) + 1} de ${files.length})` : ''}`);
+      if(f.type === 'application/pdf' || /\.pdf$/i.test(f.name)){
+        const outro = await PDFDocument.load(await lerArquivo(f), {ignoreEncryption: true});
+        const pags = await pdf.copyPages(outro, outro.getPageIndices());
+        pags.forEach((p, i) => { pdf.addPage(p); if(i === 0) p.drawText(rot, {x: 20, y: p.getHeight() - 20, size: 10, font: negrito, color: rgb(.8, .1, .1)}); });
+      } else {
+        const im = await imagemJpeg(f), img = await pdf.embedJpg(im.bytes);
+        const p = pdf.addPage(A4);
+        p.drawText(rot, {x: M, y: A4[1] - M + 10, size: 12, font: negrito, color: rgb(.05, .36, .43)});
+        const W = A4[0] - 2*M, H = A4[1] - 2*M - 20, k = Math.min(W / im.w, H / im.h);
+        p.drawImage(img, {x: M + (W - im.w * k) / 2, y: M + (H - im.h * k) / 2, width: im.w * k, height: im.h * k});
+      }
+      progresso(++feitos / total);
+    }
+  }
+  return await pdf.save();
+}
+function paraBase64(bytes){ let s = ''; const n = 0x8000; for(let i = 0; i < bytes.length; i += n) s += String.fromCharCode.apply(null, bytes.subarray(i, i + n)); return btoa(s); }
+
+$('rvEnviar').onclick = async () => {
+  if(!RV || !validarReserva()) return;
+  const btn = $('rvEnviar'), prog = $('rvProg'), barra = prog.firstElementChild;
+  btn.disabled = true; prog.style.display = 'block'; barra.style.width = '5%'; rvMsg('Preparando seus documentos…');
+  const d = dadosReserva();
+  const nomeArq = latin(`Reserva ${d.loteamento.replace(/^Loteamento\s+/i, '')} Q${d.quadra} L${d.lote} - ${d.nome}`).replace(/[\\/:*?"<>|]/g, '').slice(0, 90) + '.pdf';
+  let bytes;
+  try { bytes = await montarPdf(d, f => barra.style.width = (5 + f * 65) + '%'); }
+  catch(e){ btn.disabled = false; prog.style.display = 'none'; rvMsg('Não consegui ler um dos arquivos. Tente outra foto ou outro PDF.', 'err'); return; }
+  let enviado = false;
+  if(CONFIG.reservaUrl){
+    rvMsg('Enviando para o corretor…'); barra.style.width = '80%';
+    try {
+      const r = await fetch(CONFIG.reservaUrl, {method: 'POST', body: JSON.stringify(Object.assign({}, d, {pdf: paraBase64(bytes), arquivo: nomeArq}))});
+      const j = await r.json(); enviado = !!j.ok;
+    } catch(e){ enviado = false; }
+  }
+  barra.style.width = '100%';
+  btn.disabled = false; prog.style.display = 'none'; rvMsg('');
+  telaReservaOk(d, enviado, new File([bytes], nomeArq, {type: 'application/pdf'}));
+};
+function telaReservaOk(d, enviado, arquivo){
+  const avisar = linkWa(`Olá! Acabei de enviar meus documentos para reservar o Lote ${d.lote} quadra ${d.quadra} do ${d.loteamento}. Meu nome é ${d.nome}.`);
+  $('rvForm').hidden = true; $('reserva').querySelector('.adm-foot').hidden = true;
+  const box = document.createElement('div'); box.className = 'rv-ok';
+  const festa = `<div class="confete" aria-hidden="true">${Array.from({length: 36}, (_, i) => `<i style="left:${(i * 97) % 100}%;animation-delay:${(i % 12) * .12}s;background:${['#f2c230','#1fa458','#2f80ed','#d23f3f','#f08a24','#0d5d6e'][i % 6]}"></i>`).join('')}</div>`;
+  const parabens = `${festa}<div class="big">🤩🎉</div>
+       <h3 class="rv-parabens">PARABÉNS PELO ENORME PASSO NA DIREÇÃO CERTA🤩🎉</h3>
+       <p class="rv-feliz">Seu corretor já está com a documentação e logo já te retorna com novidades 😁👏🏻</p>
+       <div class="rv-resumo">Lote ${esc(d.lote)} · Quadra ${esc(d.quadra)}<br>${esc(d.loteamento)}</div>`;
+  box.innerHTML = enviado
+    ? `${parabens}
+       <a class="btn wa" href="${avisar}" target="_blank" rel="noopener">Avisar o corretor no WhatsApp</a>
+       <button class="btn sec" id="rvOkFechar">Voltar ao mapa</button>`
+    : `<div class="big">📄</div><h3>Falta só um passo</h3><p>Seus documentos estão prontos num PDF. Envie esse arquivo para o corretor no WhatsApp para concluir a reserva.</p>
+       <button class="btn wa" id="rvCompart">Enviar PDF pelo WhatsApp</button>
+       <button class="btn sec" id="rvBaixar">Baixar o PDF</button>
+       <button class="btn sec" id="rvOkFechar">Voltar ao mapa</button>`;
+  box.dataset.parabens = parabens;
+  $('rvCorpo').appendChild(box); $('rvCorpo').scrollTop = 0;
+  const baixar = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(arquivo); a.download = arquivo.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
+  if($('rvBaixar')) $('rvBaixar').onclick = baixar;
+  if($('rvCompart')) $('rvCompart').onclick = async () => {
+    try {
+      if(navigator.canShare && navigator.canShare({files: [arquivo]})){ await navigator.share({files: [arquivo], title: 'Reserva de lote', text: d.texto}); mostrarParabens(); return; }
+    } catch(e){ if(e && e.name === 'AbortError') return; }
+    baixar(); window.open(linkWa(d.texto + '\n\n(O PDF com os documentos foi baixado no meu aparelho e vou enviar em seguida.)'), '_blank'); mostrarParabens();
+  };
+  $('rvOkFechar').onclick = () => $('reserva').classList.remove('open');
+  function mostrarParabens(){
+    box.innerHTML = box.dataset.parabens + '<button class="btn sec" id="rvOkFechar">Voltar ao mapa</button>';
+    $('rvOkFechar').onclick = () => $('reserva').classList.remove('open');
+  }
+}
+
 (function(){ const s = document.createElement('script');
   s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(CONFIG.googleMapsKey) + '&callback=initMap&loading=async';
   s.async = true; document.head.appendChild(s); })();
