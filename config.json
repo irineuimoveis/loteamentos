@@ -166,7 +166,259 @@
     "porEntrada": {},
     "porLote": {}
    }
+  },
+  "guimbala": {
+   "conds": [
+    {
+     "id": "cmw5vjvu039y",
+     "sinal": 5000,
+     "fases": [
+      {
+       "n": 10,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "15000": "cmw5vjvu039y",
+    "17000": "cmw5vjvu039y",
+    "20000": "cmw5vjvu039y",
+    "25000": "cmw5vjvu039y",
+    "30000": "cmw5vjvu039y"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "firenze": {
+   "conds": [
+    {
+     "id": "cmw5vkxntnw9",
+     "sinal": 1000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "21000": "cmw5vkxntnw9",
+    "24600": "cmw5vkxntnw9",
+    "25500": "cmw5vkxntnw9",
+    "27000": "cmw5vkxntnw9",
+    "31400": "cmw5vkxntnw9",
+    "32400": "cmw5vkxntnw9"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "moser": {
+   "conds": [
+    {
+     "id": "cmw5vlsgipr9",
+     "sinal": 3000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "0": "cmw5vlsgipr9",
+    "12800": "cmw5vlsgipr9",
+    "15000": "cmw5vlsgipr9",
+    "22000": "cmw5vlsgipr9",
+    "79912": "cmw5vlsgipr9",
+    "799012": "cmw5vlsgipr9",
+    "800002": "cmw5vlsgipr9"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "raul-gern": {
+   "conds": [
+    {
+     "id": "cmw5vmwgmxwe",
+     "sinal": 5000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "0": "cmw5vmwgmxwe",
+    "25000": "cmw5vmwgmxwe",
+    "30000": "cmw5vmwgmxwe",
+    "35000": "cmw5vmwgmxwe",
+    "40000": "cmw5vmwgmxwe",
+    "50000": "cmw5vmwgmxwe",
+    "60000": "cmw5vmwgmxwe"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "julio-moreira": {
+   "conds": [
+    {
+     "id": "cmw5vo1e9w4f",
+     "sinal": 1000,
+     "fases": [
+      {
+       "n": 15,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "10000": "cmw5vo1e9w4f",
+    "10800": "cmw5vo1e9w4f",
+    "15000": "cmw5vo1e9w4f",
+    "20000": "cmw5vo1e9w4f",
+    "22000": "cmw5vo1e9w4f",
+    "25000": "cmw5vo1e9w4f",
+    "30000": "cmw5vo1e9w4f"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "nossa-senhora-aparecida": {
+   "conds": [
+    {
+     "id": "cmw5vopzg3dw",
+     "sinal": 1000,
+     "fases": [
+      {
+       "n": 10,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "15000": "cmw5vopzg3dw"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "elmar-hostin": {
+   "conds": [
+    {
+     "id": "cmw5vp4rays8",
+     "sinal": 10000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "0": "cmw5vp4rays8",
+    "20000": "cmw5vp4rays8",
+    "25000": "cmw5vp4rays8",
+    "30000": "cmw5vp4rays8",
+    "40000": "cmw5vp4rays8"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "egon": {
+   "conds": [
+    {
+     "id": "cmw5vplfvw0h",
+     "sinal": 5000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "30000": "cmw5vplfvw0h",
+    "32000": "cmw5vplfvw0h",
+    "35000": "cmw5vplfvw0h",
+    "50000": "cmw5vplfvw0h"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "baia-da-babitonga": {
+   "conds": [
+    {
+     "id": "cmw5vq9sm9yk",
+     "sinal": 1000,
+     "fases": [
+      {
+       "n": 8,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "0": "cmw5vq9sm9yk",
+    "10000": "cmw5vq9sm9yk",
+    "10200": "cmw5vq9sm9yk",
+    "11000": "cmw5vq9sm9yk",
+    "12000": "cmw5vq9sm9yk",
+    "13000": "cmw5vq9sm9yk",
+    "13800": "cmw5vq9sm9yk",
+    "15000": "cmw5vq9sm9yk",
+    "16000": "cmw5vq9sm9yk",
+    "18000": "cmw5vq9sm9yk",
+    "19000": "cmw5vq9sm9yk",
+    "60011": "cmw5vq9sm9yk"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
   }
  },
- "salvoEm": "2026-11-07T03:59:15.601Z"
+ "salvoEm": "2026-11-07T04:05:08.720Z"
 }
