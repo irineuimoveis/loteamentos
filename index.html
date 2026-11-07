@@ -77,6 +77,8 @@ body{font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 .placa svg{display:block}
 .placa:hover,.placa:focus-visible{filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)) brightness(1.06);outline:none}
 @media (prefers-reduced-motion: reduce){.sheet{transition:none}}
+.lg-t{flex:1 1 100%;font-size:.7rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;opacity:.85}
+.legend,.legend *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .legend{left:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);flex-wrap:wrap;max-width:min(215px,calc(100vw - 80px));gap:2px 8px;padding:5px 8px;font-size:.66rem;border-radius:8px;opacity:.93;cursor:default;line-height:1.35}
 .legend i{width:8px;height:8px;margin-right:3px;border-width:1px;vertical-align:0}
 /* ===== Painel secreto ===== */
@@ -327,7 +329,7 @@ function calcFases(c, aVista){
   if(faltando.length === 1){
     if(fs[fs.length - 1].valor != null || !aVista) return null;
     const pago = (c.sinal || 0) + fs.slice(0, -1).reduce((s, f) => s + f.n * f.valor, 0);
-    const v = Math.round((aVista - pago) / fs[fs.length - 1].n);
+    const v = Math.ceil((aVista - pago) / fs[fs.length - 1].n - 1e-9); // centavos: sobe para o próximo real
     if(!(v > 0)) return null;
     fs[fs.length - 1].valor = v;
   }
@@ -397,7 +399,7 @@ async function initMap(){
     $('cidade').textContent = 'Verifique a internet e recarregue a página.'; return;
   }
   map = new google.maps.Map($('map'), {
-    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:11, minZoom:8, mapTypeId:'hybrid', tilt:0,
+    center:{lat:LOTEAMENTOS[0].centro[0], lng:LOTEAMENTOS[0].centro[1]}, zoom:12, minZoom:11, isFractionalZoomEnabled:true, mapTypeId:'hybrid', tilt:0,
     streetViewControl:true, fullscreenControl:false, clickableIcons:false, gestureHandling:'greedy', mapTypeControl:false
   });
   LOTEAMENTOS.forEach(L => {
@@ -405,10 +407,10 @@ async function initMap(){
     if(L.planta) L.overlay = new google.maps.GroundOverlay(L.planta.url, L.planta.limites ? new google.maps.LatLngBounds(
       {lat:L.planta.limites[0][0], lng:L.planta.limites[0][1]}, {lat:L.planta.limites[1][0], lng:L.planta.limites[1][1]}) : L.bounds, {opacity:.92, clickable:false});
   });
-  const area = new google.maps.LatLngBounds({lat:-28.0, lng:-49.9}, {lat:-25.8, lng:-48.0}); // leste de SC
+  const area = new google.maps.LatLngBounds({lat:-26.60, lng:-48.95}, {lat:-26.25, lng:-48.55}); // Araquari e Barra do Sul
   LOTEAMENTOS.forEach(L => area.union(L.bounds));
   const ne = area.getNorthEast(), sw = area.getSouthWest();
-  map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.3, south:sw.lat()-.3, east:ne.lng()+.3, west:sw.lng()-.3}, strictBounds:false}});
+  map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.04, south:sw.lat()-.04, east:ne.lng()+.04, west:sw.lng()-.04}, strictBounds:false}});
   criarPlacas(); criarCamada();
   fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${esc(L.id)}">${esc(L.nome)}</option>`).join('');
   map.addListener('click', tocarMapa);
@@ -507,7 +509,7 @@ function criarPlacas(){
           el.onclick = () => escolher(L.id);
         } else {
           el.innerHTML = svgPlaca(`${g.itens.length} loteamentos aqui`); el.setAttribute('aria-label', `${g.itens.length} loteamentos aqui, aproximar`);
-          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); map.fitBounds(b, 80); };
+          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); map.fitBounds(b, {top:70, bottom:60, left:24, right:24}); };
         }
         el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.onclick(); } };
         google.maps.OverlayView.preventMapHitsAndGesturesFrom(el);
@@ -705,7 +707,7 @@ $('btnShare').onclick = async () => {
   try { await navigator.clipboard.writeText(url); toast('Link copiado!'); }
   catch(e){ prompt('Copie o link:', url); }
 };
-$('legenda').innerHTML = Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
+$('legenda').innerHTML = '<b class="lg-t">Legenda</b>' + Object.values(SIT).map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('');
 
 /* =====================================================================
    ÁREA DO CORRETOR — 5 toques na legenda + senha
