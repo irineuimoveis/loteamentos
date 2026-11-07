@@ -344,6 +344,10 @@ body.modo #cantoEsq .chat{display:none}
 .print-fora{position:fixed;left:-10000px;top:0;pointer-events:none}
 .print-card{position:static;width:390px;max-height:none !important;overflow:visible !important;border-radius:18px;padding:16px 18px 14px !important;box-shadow:none}
 .print-card .pc-rod{margin-top:12px;font-size:.72rem;color:var(--muted);text-align:center}
+a.chip{text-decoration:none;display:inline-flex;align-items:center}
+.ctl-planta{margin:0 10px 10px 0;background:#fff;color:#222;border:0;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);font:600 12px/1 Figtree,system-ui,sans-serif;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.ctl-planta i{width:14px;height:14px;border-radius:3px;border:2px solid #0d5d6e;display:grid;place-items:center;font-style:normal;font-size:10px;color:#fff;background:#0d5d6e}
+.ctl-planta.off i{background:#fff;color:transparent}
 </style>
 </head>
 <body>
@@ -359,9 +363,10 @@ body.modo #cantoEsq .chat{display:none}
     <select id="fLot" aria-label="Escolher loteamento"></select>
     <select id="fQuadra" aria-label="Filtrar por quadra" hidden></select>
     <button class="chip" id="fBarato" aria-pressed="false" hidden>⭐ Mais facilitados</button>
-    <button class="chip" id="fDestacar" aria-pressed="false">📍 Destacar disponíveis</button>
+    <a class="chip" id="fRota" target="_blank" rel="noopener">📍Traçar Rota até aqui</a>
+    <button class="chip" id="fDestacar" aria-pressed="false">✅ Destacar disponíveis</button>
     <input type="checkbox" id="fDisp" hidden>
-    <label class="chip"><input type="checkbox" id="fPlanta" checked> Planta</label>
+    <input type="checkbox" id="fPlanta" checked hidden>
   </div>
 </div></div>
 
@@ -622,11 +627,11 @@ function slugDaUrl(){
   const s = i >= 0 ? partes[i + 1] : partes[partes.length - 1];
   return s && s !== 'index.html' ? decodeURIComponent(s).toLowerCase() : '';
 }
-function linkDe(L){ return BASE + (L ? encodeURIComponent(L.id) : ''); }
+function linkDe(L){ return BASE + (L ? '?l=' + encodeURIComponent(L.id) : ''); }   // sempre a página principal: nunca abre versão antiga
 function atualizarUrl(){
   if(!location.hostname.endsWith('github.io') || new URLSearchParams(location.search).get('lote') && FIXOS.length) return;
   const alvo = linkDe(LOT);
-  if(location.href.replace(/\/$/, '') !== alvo.replace(/\/$/, '')) history.replaceState(null, '', alvo);
+  if(location.href !== alvo) history.replaceState(null, '', alvo);
 }
 function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
 
@@ -676,6 +681,11 @@ async function initMap(){
   const ne = area.getNorthEast(), sw = area.getSouthWest();
   map.setOptions({restriction:{latLngBounds:{north:ne.lat()+.04, south:sw.lat()-.04, east:ne.lng()+.04, west:sw.lng()-.04}, strictBounds:false}});
   criarPlacas(); criarCamada(); camadaPlanta = criarLadrilhos();
+  const ctl = document.createElement('button');
+  ctl.className = 'ctl-planta'; ctl.type = 'button'; ctl.innerHTML = '<i>✓</i>Planta'; ctl.setAttribute('aria-pressed', 'true');
+  ctl.onclick = () => { const c = $('fPlanta'); c.checked = !c.checked; ctl.classList.toggle('off', !c.checked); ctl.setAttribute('aria-pressed', c.checked); draw(); };
+  ctl.index = -1;   // logo abaixo do bonequinho do Street View
+  map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(ctl);
   fL.innerHTML = '<option value="">Todos os loteamentos</option>' + LOTEAMENTOS.map(L => `<option value="${esc(L.id)}">${esc(L.nome)}</option>`).join('');
   map.addListener('click', tocarMapa);
   map.addListener('idle', () => { zoomEstavel = map.getZoom(); draw(); });
@@ -700,19 +710,28 @@ function enquadrar(b, pad){
   zoomEstavel = null;   // enquadramento feito pelo site: pode afastar à vontade
   map.fitBounds(b, p);
 }
+/* Toque em qualquer placa: enquadra o que ela representa e SEMPRE aproxima (nunca afasta nem fica parado) */
+function aproximarPara(b){
+  const z0 = map.getZoom(), c = b.getCenter();
+  enquadrar(b, {top:120, bottom:70, left:30, right:30});
+  google.maps.event.addListenerOnce(map, 'idle', () => {
+    if(map.getZoom() <= z0){ zoomEstavel = null; map.setCenter(c); map.setZoom(Math.min(z0 + 2, 19)); }
+  });
+}
 function verTodos(){
   const b = new google.maps.LatLngBounds(); LOTEAMENTOS.forEach(L => b.union(L.bounds));
   enquadrar(b, 60);
 }
-function escolher(id){
+function escolher(id, daPlaca){
   const L = LOTEAMENTOS.find(x => x.id === id);
   closeCard();
   if(!L){ LOT = null; verTodos(); return; }
-  enquadrar(L.bounds, {top:105, bottom:60, left:14, right:14});
+  if(daPlaca) aproximarPara(L.bounds); else enquadrar(L.bounds, {top:105, bottom:60, left:14, right:14});
   google.maps.event.addListenerOnce(map, 'idle', () => { L.fitZoom = map.getZoom(); draw(); });
 }
 
 function cabecalho(){
+  if(LOT) $('fRota').href = `https://www.google.com/maps/dir/?api=1&destination=${LOT.centro[0]},${LOT.centro[1]}`;
   $('nome').textContent = LOT ? LOT.nome : '';
   $('cidade').textContent = LOT ? LOT.cidade : '';
   document.title = (LOT ? LOT.nome : 'Loteamentos Irineu Imóveis') + ' | Mapa dos lotes';
@@ -786,13 +805,10 @@ function criarPlacas(){
         if(g.itens.length === 1){
           const L = g.itens[0].L;
           el.innerHTML = L.placaSvg; el.setAttribute('aria-label', 'Ver ' + L.nome);
-          el.onclick = () => escolher(L.id);
+          el.onclick = () => escolher(L.id, true);
         } else {
           el.innerHTML = svgPlaca(`${g.itens.length} loteamentos aqui`); el.setAttribute('aria-label', `${g.itens.length} loteamentos aqui, aproximar`);
-          el.onclick = () => {
-            const lat = g.itens.reduce((s, o) => s + o.L.centro[0], 0) / g.itens.length, lng = g.itens.reduce((s, o) => s + o.L.centro[1], 0) / g.itens.length;
-            zoomEstavel = null; map.panTo({lat, lng}); map.setZoom(Math.min(map.getZoom() + 2, ZOOM_LOTES - 1));
-          };
+          el.onclick = () => { const b = new google.maps.LatLngBounds(); g.itens.forEach(o => b.union(o.L.bounds)); aproximarPara(b); };
         }
         el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.onclick(); } };
         google.maps.OverlayView.preventMapHitsAndGesturesFrom(el);
