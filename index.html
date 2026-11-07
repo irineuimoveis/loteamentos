@@ -175,6 +175,70 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
 .sitrow .ex{flex:1;font-size:.84rem}
 .sitrow .ex small{display:block;color:var(--muted);font-size:.74rem}
 .sitrow select{max-width:50%;font-size:14px;padding:8px}
+
+/* ===== Tutorial animado ===== */
+#tuto{background:rgba(4,14,18,.62);align-items:flex-end;justify-content:center;padding:0}
+@media (min-width:600px){#tuto{align-items:center;padding:20px}}
+.tu{background:var(--paper);color:var(--ink);width:min(440px,100%);border-radius:22px 22px 0 0;padding:16px 18px calc(env(safe-area-inset-bottom,0px) + 14px);box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+@media (min-width:600px){.tu{border-radius:22px}}
+.tu-cena{position:relative;height:190px;border-radius:16px;overflow:hidden;background:#3f5f3a}
+.tu h3{margin:14px 0 4px;font-size:1.15rem;font-weight:800}
+.tu p{margin:0;color:var(--muted);font-size:.93rem;line-height:1.45;min-height:3.6em}
+.tu-pts{display:flex;gap:6px;justify-content:center;margin:12px 0 8px}
+.tu-pts i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.tu-pts i.on{background:var(--sea);width:20px;border-radius:4px}
+.tu-rod{display:flex;align-items:center;gap:8px}
+.tu-rod label{flex:1;font-size:.8rem;color:var(--muted);display:flex;gap:6px;align-items:center;user-select:none}
+.tu-rod .btn{padding:11px 16px;font-size:.92rem;flex:none}
+.tu-pular{background:none;border:0;color:var(--muted);font:inherit;font-size:.85rem;cursor:pointer;padding:8px 4px}
+/* cenário: mapa de mentira */
+.tu-mapa{position:absolute;inset:-40%;background-color:#4c6e43;
+  background-image:radial-gradient(circle,#9aa3a7 0 4px,transparent 4.6px),radial-gradient(circle,#d23f3f 0 4px,transparent 4.6px),
+  linear-gradient(90deg,rgba(255,255,255,.18) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.18) 1px,transparent 1px);
+  background-size:36px 26px,36px 26px,36px 26px,36px 52px;background-position:0 0,18px 13px,0 0,0 0}
+.tu-dedo{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.45)}
+.tu-onda{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #fff;opacity:0}
+.tu-mao{position:absolute;font-size:38px;left:50%;top:50%;margin:-6px 0 0 -12px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+/* 1: tocar na placa */
+.c-placa .tu-plq{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.95);filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+.c-placa .tu-mao{animation:tuTap 2.4s ease-in-out infinite}
+.c-placa .tu-onda{top:44%;animation:tuOnda 2.4s ease-out infinite}
+@keyframes tuTap{0%{transform:translate(70px,60px)}40%,55%{transform:translate(0,0)}47%{transform:translate(0,0) scale(.85)}100%{transform:translate(70px,60px)}}
+@keyframes tuOnda{0%,44%{opacity:0;transform:scale(.4)}48%{opacity:.9}75%,100%{opacity:0;transform:scale(2.2)}}
+/* 2: pinça */
+.c-pinca .tu-mapa{animation:tuZoom 2.6s ease-in-out infinite}
+.c-pinca .d1{animation:tuD1 2.6s ease-in-out infinite}
+.c-pinca .d2{animation:tuD2 2.6s ease-in-out infinite}
+@keyframes tuZoom{0%,15%{transform:scale(1)}65%,85%{transform:scale(1.9)}100%{transform:scale(1)}}
+@keyframes tuD1{0%,15%{transform:translate(-14px,-12px)}65%,85%{transform:translate(-58px,-46px)}100%{transform:translate(-14px,-12px)}}
+@keyframes tuD2{0%,15%{transform:translate(14px,12px)}65%,85%{transform:translate(58px,46px)}100%{transform:translate(14px,12px)}}
+/* 3: arrastar */
+.c-arrasta .tu-mapa{animation:tuPan 2.8s ease-in-out infinite}
+.c-arrasta .tu-dedo{animation:tuArr 2.8s ease-in-out infinite}
+@keyframes tuPan{0%,10%{transform:translateX(0)}55%,70%{transform:translateX(-90px)}100%{transform:translateX(0)}}
+@keyframes tuArr{0%,10%{transform:translateX(45px)}55%,70%{transform:translateX(-45px)}100%{transform:translateX(45px)}}
+/* 4: tocar na bolinha */
+.c-lote .tu-mapa{inset:0;transform:scale(1.6)}
+.c-lote .tu-alvo{position:absolute;left:50%;top:40%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#9aa3a7;border:2px solid #fff;animation:tuAlvo 3s ease-in-out infinite}
+.c-lote .tu-mao{top:40%;animation:tuTap2 3s ease-in-out infinite}
+.c-lote .tu-mini{position:absolute;left:10px;right:10px;bottom:0;background:#fff;color:#132c34;border-radius:12px 12px 0 0;padding:9px 12px;font-size:.78rem;line-height:1.35;transform:translateY(105%);animation:tuSobe 3s ease-in-out infinite;box-shadow:0 -4px 14px rgba(0,0,0,.3)}
+.c-lote .tu-mini b{font-size:.95rem}
+@keyframes tuTap2{0%{transform:translate(60px,50px)}30%,40%{transform:translate(0,0)}35%{transform:translate(0,0) scale(.85)}55%,100%{transform:translate(60px,50px);opacity:0}}
+@keyframes tuAlvo{0%,33%{box-shadow:0 0 0 0 rgba(13,93,110,0)}38%,95%{box-shadow:0 0 0 4px #0d5d6e}100%{box-shadow:0 0 0 0 rgba(13,93,110,0)}}
+@keyframes tuSobe{0%,40%{transform:translateY(105%)}55%,92%{transform:translateY(0)}100%{transform:translateY(105%)}}
+/* 5: exemplo de condições */
+.c-cond{background:var(--sea-soft);height:auto;padding:12px}
+.ex-card{background:var(--paper);border-radius:12px;padding:11px 13px;font-size:.84rem;line-height:1.4;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.ex-card .tag{float:right;font-size:.66rem;font-weight:800;color:var(--muted);letter-spacing:.05em}
+.ex-card h4{margin:0;font-size:1.05rem}
+.ex-card .r{display:flex;justify-content:space-between;gap:10px;margin-top:3px}
+.ex-card .r span{color:var(--muted)}
+.ex-card .r b{text-align:right}
+.ex-card .s{font-size:.7rem;font-weight:800;color:var(--sea);margin-top:8px;letter-spacing:.04em}
+.ex-wa{margin-top:9px;background:var(--wa);color:#fff;border-radius:10px;padding:9px;text-align:center;font-weight:800;font-size:.84rem;animation:tuPulsa 1.6s ease-in-out infinite}
+@keyframes tuPulsa{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion: reduce){.tu *{animation:none !important}.c-lote .tu-mini{transform:none}}
+#btnAjuda{position:fixed;left:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);z-index:900;width:34px;height:34px;border-radius:50%;border:0;background:var(--paper);color:var(--sea);font:inherit;font-weight:800;font-size:1.05rem;box-shadow:0 2px 10px rgba(0,0,0,.3);cursor:pointer}
 </style>
 </head>
 <body>
@@ -217,6 +281,19 @@ details.colar .btn{margin-top:8px;padding:10px 14px;font-size:.88rem}
   <div class="bb"><button class="btn sec" id="selCancel">Cancelar</button><button class="btn pri" id="selOk">Confirmar e salvar</button></div>
 </div></div>
 
+<button id="btnAjuda" aria-label="Como usar o mapa" title="Como usar">?</button>
+<div class="ovl" id="tuto" role="dialog" aria-modal="true" aria-labelledby="tuTit">
+  <div class="tu">
+    <div class="tu-cena" id="tuCena" aria-hidden="true"></div>
+    <h3 id="tuTit"></h3><p id="tuTxt" aria-live="polite"></p>
+    <div class="tu-pts" id="tuPts"></div>
+    <div class="tu-rod">
+      <label><input type="checkbox" id="tuNao"> Não mostrar novamente</label>
+      <button class="tu-pular" id="tuPular">Pular</button>
+      <button class="btn pri" id="tuProx">Próximo</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="false" aria-labelledby="loteTitulo"><div class="card" id="card"></div></div>
@@ -417,6 +494,7 @@ async function initMap(){
   map.addListener('idle', draw);
   const ini = LOTEAMENTOS.find(L => L.id.toLowerCase() === slugDaUrl());
   if(ini) escolher(ini.id); else verTodos();
+  setTimeout(() => mostrarTutorial(false), 700);
 }
 window.initMap = initMap;
 
@@ -1100,6 +1178,62 @@ $('admFechar').onclick = () => {
   alterado = false; RASC = null; $('admin').classList.remove('open');
 };
 
+
+/* =====================================================================
+   COMO USAR — instruções animadas (aparecem na 1ª visita)
+   ===================================================================== */
+function passosTutorial(){
+  const sm = CONFIG.salarioMinimo;
+  return [
+    {t:'Escolha o loteamento', d:'Toque na placa dourada com o nome do loteamento. O mapa vai direto para ele.',
+     cena:`<div class="tu-mapa"></div><div class="tu-plq">${svgPlaca('Loteamento','Exemplo')}</div><div class="tu-onda"></div><div class="tu-mao">👆</div>`, cls:'c-placa'},
+    {t:'Aproxime com dois dedos', d:'Faça o movimento de pinça: abra os dedos para ver os lotes de perto e feche para afastar.',
+     cena:'<div class="tu-mapa"></div><div class="tu-dedo d1"></div><div class="tu-dedo d2"></div>', cls:'c-pinca'},
+    {t:'Arraste para passear', d:'Com um dedo, arraste o mapa para ver as ruas e os lotes ao redor.',
+     cena:'<div class="tu-mapa"></div><div class="tu-dedo"></div>', cls:'c-arrasta'},
+    {t:'Toque num lote', d:'Cada bolinha é um terreno. As cinzas estão disponíveis. Toque nela para abrir as condições.',
+     cena:`<div class="tu-mapa"></div><div class="tu-alvo"></div><div class="tu-mao">👆</div>
+       <div class="tu-mini"><b>Lote 12</b> · Quadra A<br>Entrada à vista R$ 35.000</div>`, cls:'c-lote'},
+    {t:'Aqui estão as condições', d:'O card mostra a entrada à vista, a entrada parcelada e o financiamento, já com o valor de hoje. Toque no botão verde para receber tudo no WhatsApp do corretor.',
+     cena:`<div class="ex-card"><span class="tag">EXEMPLO</span><h4>Lote 12 · Quadra A</h4>
+        <div class="s">ENTRADA</div>
+        <div class="r"><span>À vista</span><b>R$ 35.000</b></div>
+        <div class="r"><span>Parcelada</span><b>R$ 5.000 de sinal + 10x de R$ 3.000</b></div>
+        <div class="s">PARCELAMENTO</div>
+        <div class="r"><span>240x de 1 salário mínimo</span><b>${brl(sm)} hoje</b></div>
+        <div class="ex-wa">Mandar esse para o WhatsApp do Corretor</div></div>`, cls:'c-cond'}
+  ];
+}
+let tuIdx = 0, tuPassos = [];
+function mostrarTutorial(forcar){
+  if(!forcar && localStorage.getItem('tutorialOk') === '1') return;
+  if(MODO || $('admin').classList.contains('open')) return;
+  tuPassos = passosTutorial(); tuIdx = 0;
+  $('tuNao').checked = localStorage.getItem('tutorialOk') === '1';
+  $('tuto').classList.add('open'); passoTutorial();
+  setTimeout(() => $('tuProx').focus(), 60);
+}
+function passoTutorial(){
+  const p = tuPassos[tuIdx];
+  const cena = $('tuCena'); cena.className = 'tu-cena ' + p.cls; cena.innerHTML = p.cena;
+  $('tuTit').textContent = p.t; $('tuTxt').textContent = p.d;
+  $('tuPts').innerHTML = tuPassos.map((_, i) => `<i class="${i === tuIdx ? 'on' : ''}"></i>`).join('');
+  $('tuProx').textContent = tuIdx === tuPassos.length - 1 ? 'Começar' : 'Próximo';
+  $('tuPular').style.visibility = tuIdx === tuPassos.length - 1 ? 'hidden' : '';
+}
+function fecharTutorial(){
+  if($('tuNao').checked) localStorage.setItem('tutorialOk', '1'); else localStorage.removeItem('tutorialOk');
+  $('tuto').classList.remove('open');
+}
+$('tuProx').onclick = () => { if(tuIdx < tuPassos.length - 1){ tuIdx++; passoTutorial(); } else fecharTutorial(); };
+$('tuPular').onclick = fecharTutorial;
+$('btnAjuda').onclick = () => mostrarTutorial(true);
+document.addEventListener('keydown', e => {
+  if(!$('tuto').classList.contains('open')) return;
+  if(e.key === 'Escape') fecharTutorial();
+  if(e.key === 'ArrowRight') $('tuProx').click();
+  if(e.key === 'ArrowLeft' && tuIdx > 0){ tuIdx--; passoTutorial(); }
+});
 (function(){ const s = document.createElement('script');
   s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(CONFIG.googleMapsKey) + '&callback=initMap&loading=async';
   s.async = true; document.head.appendChild(s); })();
