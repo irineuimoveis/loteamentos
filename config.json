@@ -693,7 +693,103 @@
      "J|1": 1600000
     }
    }
+  },
+  "freitag": {
+   "conds": [
+    {
+     "id": "cmw6j273wj9p",
+     "sinal": 3000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "22000": "cmw6j273wj9p"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {
+     "800002": 1600000
+    },
+    "porLote": {}
+   }
+  },
+  "kogler": {
+   "conds": [
+    {
+     "id": "cmw6j30l0z3b",
+     "sinal": 3000,
+     "fases": [
+      {
+       "n": 8,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "22000": "cmw6j30l0z3b",
+    "25000": "cmw6j30l0z3b"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "florida": {
+   "conds": [
+    {
+     "id": "cmw6j3fxme2o",
+     "sinal": 3000,
+     "fases": [
+      {
+       "n": 8,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "15000": "cmw6j3fxme2o"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
+  },
+  "bandeirantes": {
+   "conds": [
+    {
+     "id": "cmw6j3rldrj7",
+     "sinal": 1000,
+     "fases": [
+      {
+       "n": 15,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "22000": "cmw6j3rldrj7",
+    "30000": "cmw6j3rldrj7"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
   }
  },
- "salvoEm": "2026-11-07T14:57:03.199Z"
+ "salvoEm": "2026-11-07T14:58:58.911Z"
 }
