@@ -1,6 +1,6 @@
 """Robô que baixa os lotes do forinvest e gera o data.json do mapa.
 Roda sozinho no GitHub Actions. Usuário e senha ficam nos Secrets do GitHub."""
-import base64, gzip, hashlib, io, json, math, os, re, shutil, sys, urllib.request
+import base64, gzip, hashlib, io, json, math, os, re, shutil, subprocess, sys, time, urllib.request
 from datetime import datetime, timezone, timedelta
 
 BASE = "https://irineuimoveis-be.forinvest.com.br/api/"
@@ -231,24 +231,49 @@ def main():
             print("ERRO em", item.get("id"), e)
     if not saida: sys.exit("Nenhum loteamento baixado.")
     open(".nojekyll", "a").close()   # o GitHub Pages publica os milhares de pedaços de planta sem processar
+    pastas = []
     if os.path.exists("index.html"):
         pagina = CASCA
         for item in lista:
             pasta = re.sub(r"[^a-z0-9-]", "", item["id"].lower())
             if not pasta: continue
-            os.makedirs(pasta, exist_ok=True)
+            os.makedirs(pasta, exist_ok=True); pastas.append(pasta)
             destino = os.path.join(pasta, "index.html")
             if not os.path.exists(destino) or open(destino, encoding="utf-8").read() != pagina:
                 open(destino, "w", encoding="utf-8").write(pagina)
     agora = datetime.now(timezone(timedelta(hours=-3))).strftime("%d/%m/%Y %H:%M")
     novo = {"atualizado": agora, "loteamentos": saida}
-    try:
-        antigo = json.load(open("data.json", encoding="utf-8"))
-        if antigo.get("loteamentos") == saida:
-            print("Nada mudou."); return
-    except Exception: pass
-    json.dump(novo, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    print("data.json atualizado", agora)
+    try: igual = json.load(open("data.json", encoding="utf-8")).get("loteamentos") == saida
+    except Exception: igual = False
+    if igual: print("Lotes sem mudança.")
+    else:
+        json.dump(novo, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+        print("data.json atualizado", agora)
+    salvar_no_github(pastas)
+
+def git(*args, ok=False):
+    r = subprocess.run(["git", *args], capture_output=True, text=True)
+    if r.returncode and not ok: raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()[-400:]}")
+    return r
+
+def salvar_no_github(pastas):
+    """Salva só os arquivos do robô, por cima da versão mais nova do GitHub.
+    Não usa "merge": nunca dá conflito e nunca desfaz o que o painel do corretor salvou."""
+    if os.environ.get("GITHUB_ACTIONS") != "true": return
+    git("config", "user.name", "robo-lotes"); git("config", "user.email", "robo-lotes@users.noreply.github.com")
+    meus = ["data.json", ".nojekyll", "plantas"] + [p for p in pastas if os.path.isdir(p)]
+    for tentativa in range(1, 6):
+        git("fetch", "-q", "origin", "main")
+        git("reset", "-q", "--mixed", "origin/main")          # parte da versão mais nova, mantendo os arquivos gerados agora
+        git("add", "-A", "--", *[m for m in meus if os.path.exists(m)])
+        if git("diff", "--cached", "--quiet", ok=True).returncode == 0:
+            print("Nada mudou para salvar."); git("reset", "-q", "--hard", "origin/main"); return
+        git("commit", "-q", "-m", "Atualiza lotes")
+        if git("push", "-q", "origin", "HEAD:main", ok=True).returncode == 0:
+            print("Salvo no GitHub."); git("reset", "-q", "--hard", "HEAD"); return
+        print(f"Outra alteração entrou no meio, tentando de novo ({tentativa}/5)...")
+        time.sleep(5 * tentativa)
+    sys.exit("Não consegui salvar no GitHub depois de 5 tentativas.")
 
 if __name__ == "__main__":
     main()
