@@ -996,7 +996,7 @@ $('fDestacar').onclick = () => {
   if(camada) camada.draw();
 };
 
-/* Apertar e segurar 1,5 s em cima de um lote: marca com alfinete */
+/* Apertar e segurar 0,5 s em cima de um lote: marca com alfinete */
 (function(){
   let t = null, x0 = 0, y0 = 0;
   const alvo = $('map');
@@ -1016,7 +1016,7 @@ $('fDestacar').onclick = () => {
       const ja = FIXOS.some(f => f.l === v.l);
       fixar(v.L, v.l);
       toast(ja ? 'Alfinete removido' : `Lote ${v.l[1]} · Quadra ${v.l[0]} marcado`);
-    }, 1500);
+    }, 500);
   }, true);
   alvo.addEventListener('pointermove', e => { if(t && Math.hypot(e.clientX - x0, e.clientY - y0) > 12) cancelar(); }, true);
   ['pointerup','pointercancel','pointerleave'].forEach(n => alvo.addEventListener(n, cancelar, true));
@@ -1024,7 +1024,7 @@ $('fDestacar').onclick = () => {
 })();
 
 /* Enviar para alguém: link que abre direto neste lote */
-function linkLote(L, l){ return `${linkDe(L)}/?quadra=${encodeURIComponent(l[0])}&lote=${encodeURIComponent(l[1])}`; }
+function linkLote(L, l){ return `${BASE}?l=${encodeURIComponent(L.id)}&quadra=${encodeURIComponent(l[0])}&lote=${encodeURIComponent(l[1])}`; }
 /* Imagem das condições do lote (vai junto quando envia para alguém) */
 let imgCard = null;   // {l, promessa}
 function prepararImagem(LT, l){
@@ -1072,10 +1072,14 @@ function abrirLoteDoLink(L){
   fixar(L, l, true);
   zoomEstavel = null;
   map.setCenter({lat: l[4], lng: l[5]}); map.setZoom(19);
-  google.maps.event.addListenerOnce(map, 'idle', () => {
+  let feito = false;
+  const mostrar = () => {
+    if(feito) return; feito = true;
     open(L, l);
-    setTimeout(() => { const h = $('sheet').offsetHeight || 0; map.panBy(0, Math.round(h / 2)); }, 350);
-  });
+    setTimeout(() => { const h = $('sheet').offsetHeight || 0; map.panBy(0, Math.round(h / 2)); if(camada) camada.draw(); }, 350);
+  };
+  google.maps.event.addListenerOnce(map, 'idle', mostrar);
+  setTimeout(mostrar, 1500);   // garantia, caso o mapa já esteja parado
   return true;
 }
 
