@@ -662,7 +662,36 @@
      "19|20": 25000
     }
    }
+  },
+  "machados": {
+   "conds": [
+    {
+     "id": "cmw6iyw301m0",
+     "sinal": 2977,
+     "fases": [
+      {
+       "n": 10,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "20000": "cmw6iyw301m0",
+    "22000": "cmw6iyw301m0",
+    "25000": "cmw6iyw301m0"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {
+     "J|3": 1600000,
+     "J|2": 1600000,
+     "J|1": 1600000
+    }
+   }
   }
  },
- "salvoEm": "2026-11-07T14:54:37.094Z"
+ "salvoEm": "2026-11-07T14:56:30.681Z"
 }
