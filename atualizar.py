@@ -1,6 +1,6 @@
 """Robô que baixa os lotes do forinvest e gera o data.json do mapa.
 Roda sozinho no GitHub Actions. Usuário e senha ficam nos Secrets do GitHub."""
-import base64, gzip, json, os, re, sys, urllib.request
+import base64, gzip, hashlib, io, json, os, re, sys, urllib.request
 from datetime import datetime, timezone, timedelta
 
 BASE = "https://irineuimoveis-be.forinvest.com.br/api/"
@@ -69,6 +69,51 @@ def indice_unidades(o, idx):
         for v in o: indice_unidades(v, idx)
     return idx
 
+LADO_MAX = 4096   # maior lado da planta em pixels (limite seguro para celulares)
+
+def otimizar_planta(lot):
+    """Baixa a planta do forinvest uma vez, reduz o peso (WebP de alta qualidade) e guarda no repositório.
+    Só refaz quando a planta original muda. Se algo falhar, continua usando a original."""
+    p = lot.get("planta")
+    if not p or not p.get("url"): return
+    src = p["url"]
+    ver = hashlib.sha1(src.encode()).hexdigest()[:10]
+    pasta = re.sub(r"[^a-z0-9-]", "", lot["id"].lower()) or "lot"
+    os.makedirs("plantas", exist_ok=True)
+    meta = f"plantas/{pasta}.json"
+    try:
+        info = json.load(open(meta, encoding="utf-8")) if os.path.exists(meta) else {}
+        if info.get("src") != src or not (info.get("usar_original") or os.path.exists(info.get("arquivo", "-"))):
+            from PIL import Image
+            req = urllib.request.Request(src, headers={"User-Agent": HEAD["User-Agent"]})
+            bruto = urllib.request.urlopen(req, timeout=120).read()
+            img = Image.open(io.BytesIO(bruto))
+            img = img.convert("RGBA" if ("A" in img.getbands() or img.mode == "P") else "RGB")
+            w, h = img.size
+            k = min(1.0, LADO_MAX / max(w, h))
+            if k < 1: img = img.resize((round(w * k), round(h * k)), Image.LANCZOS)
+            # testa WebP de alta qualidade e PNG otimizado; fica com o mais leve
+            opcoes = []
+            b1 = io.BytesIO(); img.save(b1, "WEBP", quality=90, method=6, alpha_quality=95); opcoes.append(("webp", b1.getvalue()))
+            b2 = io.BytesIO(); img.save(b2, "PNG", optimize=True); opcoes.append(("png", b2.getvalue()))
+            ext, novo = min(opcoes, key=lambda o: len(o[1]))
+            for velho in ("webp", "png"):
+                if os.path.exists(f"plantas/{pasta}.{velho}"): os.remove(f"plantas/{pasta}.{velho}")
+            if len(novo) >= len(bruto) and k == 1:
+                info = {"src": src, "usar_original": True}
+            else:
+                arquivo = f"plantas/{pasta}.{ext}"
+                open(arquivo, "wb").write(novo)
+                info = {"src": src, "arquivo": arquivo, "original_kb": len(bruto) // 1024, "otimizada_kb": len(novo) // 1024,
+                        "original_px": [w, h], "otimizada_px": list(img.size)}
+            json.dump(info, open(meta, "w", encoding="utf-8"))
+            print(f"  planta {pasta}: {len(bruto)//1024} KB -> {len(novo)//1024} KB ({w}x{h} -> {img.size[0]}x{img.size[1]})")
+        if not info.get("usar_original"):
+            p["original"] = src
+            p["url"] = f"{info['arquivo']}?v={ver}"
+    except Exception as e:
+        print("  AVISO: não consegui otimizar a planta de", lot["id"], "-", e)
+
 def montar(offer, item):
     unidades = offer["units"]
     idx = indice_unidades(offer, {})
@@ -123,6 +168,7 @@ def main():
         try:
             offer = chamar(BASE + "Offer/" + item["offerId"] + "?loadUnits=true", token=token)
             lot = montar(offer, item)
+            otimizar_planta(lot)
             saida.append(lot)
             print("OK", lot["nome"], len(lot["lotes"]), "lotes")
         except Exception as e:
