@@ -30,7 +30,36 @@
     },
     "porLote": {}
    }
+  },
+  "aurora-leoni": {
+   "conds": [
+    {
+     "id": "cmw5pv29gfnn",
+     "sinal": 1000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": 500
+      },
+      {
+       "n": 12,
+       "valor": 800
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "13600": "cmw5pv29gfnn"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {
+     "1065": 13600
+    },
+    "porLote": {}
+   }
   }
  },
- "salvoEm": "2026-11-07T00:35:05.209Z"
+ "salvoEm": "2026-11-07T01:20:32.446Z"
 }
