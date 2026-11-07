@@ -125,13 +125,45 @@
       }
      ],
      "financ": []
+    },
+    {
+     "id": "cmw5x81uqjub",
+     "sinal": 1000,
+     "fases": [
+      {
+       "n": 6,
+       "valor": 600
+      },
+      {
+       "n": 12,
+       "valor": 900
+      }
+     ],
+     "financ": []
+    },
+    {
+     "id": "cmw5x9d45pwy",
+     "sinal": 3500,
+     "fases": [
+      {
+       "n": 6,
+       "valor": 700
+      },
+      {
+       "n": 12,
+       "valor": 1000
+      }
+     ],
+     "financ": []
     }
    ],
    "porEntrada": {
     "13600": "cmw5pv29gfnn",
     "14100": "cmw5qhnm2oyw",
+    "15400": "cmw5x81uqjub",
     "16900": "cmw5qjbpa2mh",
-    "18700": "cmw5wvmhxjpy"
+    "18700": "cmw5wvmhxjpy",
+    "19700": "cmw5x9d45pwy"
    },
    "porLote": {},
    "av": {
@@ -528,5 +560,5 @@
    }
   }
  },
- "salvoEm": "2026-11-07T04:45:49.711Z"
+ "salvoEm": "2026-11-07T04:47:30.501Z"
 }
