@@ -11,14 +11,17 @@
      "fases": [
       {
        "n": 12,
-       "valor": 2084
+       "valor": null
       }
      ],
      "financ": []
     }
    ],
    "porEntrada": {
-    "30000": "cmw5ggx91b49"
+    "30000": "cmw5ggx91b49",
+    "35000": "cmw5ggx91b49",
+    "40000": "cmw5ggx91b49",
+    "45000": "cmw5ggx91b49"
    },
    "porLote": {},
    "av": {
@@ -132,7 +135,38 @@
     "porEntrada": {},
     "porLote": {}
    }
+  },
+  "atlantico-sul": {
+   "conds": [
+    {
+     "id": "cmw5vhupi3vv",
+     "sinal": 5000,
+     "fases": [
+      {
+       "n": 8,
+       "valor": null
+      }
+     ],
+     "financ": []
+    }
+   ],
+   "porEntrada": {
+    "20000": "cmw5vhupi3vv",
+    "25000": "cmw5vhupi3vv",
+    "30000": "cmw5vhupi3vv",
+    "33000": "cmw5vhupi3vv",
+    "35000": "cmw5vhupi3vv",
+    "40000": "cmw5vhupi3vv",
+    "45000": "cmw5vhupi3vv",
+    "50000": "cmw5vhupi3vv",
+    "55000": "cmw5vhupi3vv"
+   },
+   "porLote": {},
+   "av": {
+    "porEntrada": {},
+    "porLote": {}
+   }
   }
  },
- "salvoEm": "2026-11-07T03:57:15.003Z"
+ "salvoEm": "2026-11-07T03:59:15.601Z"
 }
