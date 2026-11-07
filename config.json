@@ -8,15 +8,29 @@
     {
      "id": "cmw5ggx91b49",
      "sinal": 5000,
-     "parcelas": 12,
-     "valor": 2084
+     "fases": [
+      {
+       "n": 12,
+       "valor": 2084
+      }
+     ],
+     "financ": []
     }
    ],
    "porEntrada": {
-    "35000": "cmw5ggx91b49"
+    "30000": "cmw5ggx91b49"
    },
-   "porLote": {}
+   "porLote": {},
+   "av": {
+    "porEntrada": {
+     "35000": 30000,
+     "40000": 35000,
+     "45000": 40000,
+     "50000": 45000
+    },
+    "porLote": {}
+   }
   }
  },
- "salvoEm": "2026-11-06T21:15:06.279Z"
+ "salvoEm": "2026-11-07T00:35:05.209Z"
 }
